@@ -2,9 +2,12 @@
 .pytest_cache
 __pycache__
 *.egg-info
-out/*.npz
 out/saral.db
 docs/
 tests/
 DECISIONS.md
 build_plan.md
+
+# out/baseline_embeddings.npz IS shipped (47KB): it lets the image reproduce the
+# cosine baseline comparison with numpy alone, so the dashboard is complete
+# without adding sentence-transformers and its 800MB of dependencies.

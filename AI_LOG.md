@@ -86,11 +86,19 @@ Engineer, and the services-company spellings alongside the product-company ones)
 Committed at `config/synthetic_titles.jsonl` with the generating prompt kept in
 `scripts/generate_llm_artifacts.py`, so a reviewer can see what produced it and
 `make all` needs no model.
-**Why this backend.** The original plan called for Ollama, which is not
-installed; `Phi-3.5-mini` turned out to be only partially present in the local
-HuggingFace cache and wanted a 4.9GB download, which breaks the no-network
-constraint (FL-001). Claude Code was already the tool in use and its output is
-committed, so the artifact is reproducible for someone who has neither.
+**Why this backend.** At the time, Ollama was not installed and
+`Phi-3.5-mini` turned out to be only partially present in the local HuggingFace
+cache, wanting a 4.9GB download that breaks the no-network constraint (FL-001).
+Claude Code was already the tool in use and its output is committed, so the
+artifact is reproducible for someone who has neither.
+
+**Update, same day.** Ollama became available, so
+`scripts/generate_llm_artifacts.py --backend ollama` now regenerates the corpus
+with `qwen2.5:3b-instruct` at temperature 0 with a fixed seed and a JSON schema,
+and that is what `make regenerate-llm-artifacts` runs. I have **not** relabelled
+the committed corpus: it was written by Claude Code and the `source` field on
+every row still says so. Overwriting the provenance to look more reproducible
+than the artifact actually is would be the same class of mistake as AI-002.
 **The honest limitation.** The corpus inherits an LLM's priors about what job
 titles mean, and it was validated against 42 titles I labelled myself. So the
 held-out set is independent of the *models* but not of *me*. At real scale the

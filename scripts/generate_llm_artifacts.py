@@ -14,26 +14,33 @@ synthetic corpus is what makes distillation honest rather than a fig leaf: the
 LLM's knowledge about what job titles mean is transferred into a ~100KB sparse
 model, and the 45 real entries stay held out as a genuine validation set.
 
-Two generation backends
------------------------
-`--backend claude` (default, and how the committed artifact was produced)
-    The corpus was written by Claude Code, the same assistant used throughout
-    this build, prompted per role family for realistic titles including messy
-    Indian-market variants. Documented in AI_LOG.md AI-005.
+Three generation backends
+-------------------------
+`--backend ollama --model qwen2.5:3b-instruct` (**recommended**)
+    A local Ollama model at temperature 0 with a fixed seed and a JSON schema
+    constraining the output to an array of strings. This is the plan's original
+    design and the one a reviewer can reproduce without me: `ollama pull
+    qwen2.5:3b-instruct && make regenerate-llm-artifacts`.
+
+`--backend claude` (how the currently committed artifact was produced)
+    Written by Claude Code, the same assistant used throughout this build,
+    prompted per role family. Kept as the default only because it is what the
+    committed file actually came from and mislabelling provenance would be worse
+    than an awkward default. See AI_LOG.md AI-005.
 
 `--backend local --model <hf-id>`
-    A local HuggingFace instruct model, for reproducing the pipeline without
-    Claude. On this machine `microsoft/Phi-3.5-mini-instruct` runs at roughly
-    0.4 tok/s on CPU, so a full regeneration takes hours -- which is itself part
-    of the cost argument in INFRA.md, not an accident.
+    A local HuggingFace `transformers` model, kept for environments with neither
+    Ollama nor network. Slow on CPU.
 
-Either way the output is deterministic given its inputs and is committed.
+Either way the output is deterministic given its inputs and is committed, and
+`make all` never regenerates it.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +59,46 @@ Requirements:
 - Include titles used by Indian IT services companies, not only product firms.
 - Do NOT include titles that would be ambiguous between families.
 Return a JSON array of strings and nothing else."""
+
+
+#: Constrains the reply to a bare array of strings, so a title list cannot come
+#: back wrapped in prose or markdown fences. Shape only -- the model can still
+#: return a title that belongs to the wrong family, which is why the distilled
+#: classifier is validated on hand-labelled real entries rather than on this.
+TITLES_SCHEMA = {"type": "array", "items": {"type": "string"}, "minItems": 5}
+
+
+def generate_ollama(model_id: str, families: list[str], per_family: int) -> list[dict]:
+    """Generate with a local Ollama model, schema-constrained and seeded."""
+    sys.path.insert(0, str(ROOT / "src"))
+    from saral.adapters.llm.ollama_client import OllamaClient
+
+    client = OllamaClient(model=model_id)
+    if not client.available():
+        raise SystemExit(f"ollama does not have {model_id}. Run: ollama pull {model_id}")
+
+    rows: list[dict] = []
+    pinned = client.pinned_tag()
+    for family in families:
+        prompt = FAMILY_PROMPT.format(n=per_family, family=family)
+        result = client.generate(prompt, TITLES_SCHEMA)
+        text = result.get("text", "")
+        start, end = text.find("["), text.rfind("]")
+        if start < 0 or end < 0:
+            print(f"[warn] {family}: no JSON array in response, skipped")
+            continue
+        try:
+            titles = json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            print(f"[warn] {family}: unparseable JSON, skipped")
+            continue
+        kept = 0
+        for title in titles:
+            if isinstance(title, str) and title.strip():
+                rows.append({"title": title.strip(), "role_family": family, "source": pinned})
+                kept += 1
+        print(f"  {family}: {kept} titles ({result.get('wall_ms', 0) / 1000:.1f}s)")
+    return rows
 
 
 def generate_local(model_id: str, families: list[str], per_family: int) -> list[dict]:
@@ -100,8 +147,10 @@ def generate_local(model_id: str, families: list[str], per_family: int) -> list[
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--backend", choices=["claude", "local"], default="claude")
-    parser.add_argument("--model", default="microsoft/Phi-3.5-mini-instruct")
+    parser.add_argument(
+        "--backend", choices=["claude", "ollama", "local"], default="claude"
+    )
+    parser.add_argument("--model", default="qwen2.5:3b-instruct")
     parser.add_argument("--per-family", type=int, default=45)
     args = parser.parse_args()
 
@@ -117,10 +166,14 @@ def main() -> None:
             print(f"current corpus: {len(rows)} titles across {len(families)} families")
         return
 
+    sys.path.insert(0, str(ROOT / "src"))
     from saral.contracts.taxonomy import RoleFamily
 
     families = [f.value for f in RoleFamily]
-    rows = generate_local(args.model, families, args.per_family)
+    if args.backend == "ollama":
+        rows = generate_ollama(args.model, families, args.per_family)
+    else:
+        rows = generate_local(args.model, families, args.per_family)
 
     seen: set[tuple[str, str]] = set()
     deduped = []

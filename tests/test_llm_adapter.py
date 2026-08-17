@@ -1,0 +1,67 @@
+"""The Ollama adapter.
+
+These run with no Ollama and no network: the point is that the adapter degrades
+to a clear signal rather than an exception, because `make all` must never depend
+on it. The cost arm is an offline script, not part of the pipeline.
+"""
+
+from __future__ import annotations
+
+import json
+
+from saral.adapters.llm.ollama_client import OllamaClient
+
+
+def test_client_reports_unavailable_without_a_server(tmp_path):
+    client = OllamaClient(model="nonexistent:1b", host="http://127.0.0.1:1", cache_dir=tmp_path)
+    assert client.available() is False
+
+
+def test_generate_returns_an_error_rather_than_raising(tmp_path):
+    """A dead Ollama must not take the script down mid-corpus."""
+    client = OllamaClient(model="nonexistent:1b", host="http://127.0.0.1:1", cache_dir=tmp_path)
+    result = client.generate("hello", None)
+    assert "error" in result
+    assert result["text"] == ""
+    assert client.stats.errors == 1
+    assert client.stats.calls == 0, "a failed call is not a call"
+
+
+def test_cache_key_covers_model_prompt_and_schema(tmp_path):
+    """Changing any of the three must invalidate the cache."""
+    client = OllamaClient(model="a:1b", cache_dir=tmp_path)
+    base = client._cache_key("p", {"type": "object"})
+    assert base != client._cache_key("p2", {"type": "object"})
+    assert base != client._cache_key("p", {"type": "array"})
+    other = OllamaClient(model="b:1b", cache_dir=tmp_path)
+    assert base != other._cache_key("p", {"type": "object"})
+
+
+def test_cache_hit_is_counted_separately_from_a_call(tmp_path):
+    """A cache hit is not evidence about model cost and must not be counted as one."""
+    client = OllamaClient(model="a:1b", cache_dir=tmp_path)
+    key = client._cache_key("p", None)
+    (tmp_path / f"{key}.json").write_text(json.dumps({"text": "{}"}), encoding="utf-8")
+    result = client.generate("p", None)
+    assert result["from_cache"] is True
+    assert client.stats.cache_hits == 1
+    assert client.stats.calls == 0
+
+
+def test_response_schema_pins_role_family_to_the_taxonomy():
+    """The schema is what makes the cost arm a fair test rather than a strawman."""
+    import importlib.util
+    import pathlib
+
+    from saral.contracts.taxonomy import RoleFamily
+
+    path = pathlib.Path(__file__).resolve().parents[1] / "scripts" / "run_llm_cost_arm.py"
+    spec = importlib.util.spec_from_file_location("cost_arm", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    enum = module.RESPONSE_SCHEMA["properties"]["role_family"]["enum"]
+    assert enum == [f.value for f in RoleFamily]
+    assert set(module.RESPONSE_SCHEMA["required"]) == {
+        "role_family", "seniority", "years_relevant",
+    }

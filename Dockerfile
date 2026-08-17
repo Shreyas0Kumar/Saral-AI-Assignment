@@ -16,12 +16,21 @@ COPY pyproject.toml ./
 COPY src/ ./src/
 COPY config/ ./config/
 COPY data/ ./data/
+# The cached baseline embeddings (47KB). With these present the cosine baseline
+# is a numpy matmul, so the image reproduces the full metrics comparison --
+# including the per-job deltas the dashboard renders -- without torch.
+COPY out/baseline_embeddings.npz ./out/baseline_embeddings.npz
+# Measured evidence produced by the offline scripts (the LLM-per-row cost arm
+# and the fallback comparison). The pipeline folds these into metrics.json, so
+# without them the container's dashboard silently omits its most important
+# comparison -- the shipped extractor against an LLM per row.
+COPY out/llm_cost_arm.json out/fallback_comparison.json ./out/
 RUN pip install --no-cache-dir --no-deps -e .
 
-# Build the SQLite store at image build time so /health is meaningful the
-# moment the container starts, rather than reporting "degraded" until someone
-# remembers to run the pipeline. Skips the embedding baseline, which needs torch.
-RUN python -m saral.cli --arm signals_v1_lexicon_lr all --skip-baseline || true
+# Build the SQLite store and every out/ artefact at image build time, so
+# /health is meaningful and /dashboard is populated the moment the container
+# starts rather than reporting "degraded" until someone runs the pipeline.
+RUN python -m saral.cli --arm signals_v1_lexicon_lr all
 
 RUN useradd --create-home --uid 10001 saral && chown -R saral:saral /app
 USER saral

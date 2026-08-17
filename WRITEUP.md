@@ -157,13 +157,37 @@ lexicon's own context vote — the architecture was already covering the case th
 fallback was hired for.
 
 **An LLM call per profile** (`llm_per_row`). Not rejected on principle;
-measured. SmolLM2-135M-Instruct — the smallest credible model, chosen as the
-steelman, because using a 7B model to prove LLMs are expensive would be
-sandbagging — took **40.4 s/profile** on 8 CPU threads, produced valid JSON for
-11 of 25 profiles, and got **1 of 25** role families right. That is ~9,300x the
-cost of the shipped extractor for 4% accuracy. CPU deliberately, because CPU is
-what Fargate bills; also honestly because this machine has an AMD GPU and CPU
-was the low-friction path, which I would say rather than dress up.
+measured, on CPU, because CPU is what Fargate bills. **gemma3:1b via Ollama,
+constrained by a JSON schema** so `role_family` is restricted to the 12-value
+enum at decode time and the model cannot fail on syntax. 25 of 25 responses
+parse, which means every error is a reasoning error.
+
+Result: **2.68 s/profile — ~1,220x the cost of the shipped extractor — for
+17 of 25 (68%) role families correct** against 25 of 25.
+
+The three failure modes are more interesting than the headline:
+
+* it predicts `non_engineering` **zero times in 25**, placing the founder, the
+  mechanical engineer and the HR executive in engineering families. SDB_10019
+  lands in `data_engineer` — the exact failure Appendix A describes;
+* `seniority` is `"mid"` for 23 of 25, including the engineering manager and the
+  three-month fresher;
+* `years_relevant` is returned in **months** for 22 of 25, copied off
+  `duration_months`.
+
+That last one is the lesson I would take to production: **a schema buys
+parseability, not correctness.** A pre-filter reading `years_relevant BETWEEN 5
+AND 9` against this field would select the wrong candidates indefinitely and
+every value would pass validation.
+
+I got this wrong first (`FL-009`). My initial harness used SmolLM2-135M through
+a naive `transformers` loop with no output constraint, and reported 40.4
+s/profile and 4% accuracy — a number ~15x too slow and ~17x too harsh, because
+14 of its 25 "errors" were unparseable JSON rather than wrong answers. I had
+written that using a 7B model to prove LLMs are expensive would be sandbagging,
+and then sandbagged in the other direction by giving the small model a harness
+that could not succeed. The corrected number is much smaller and much harder to
+argue with.
 
 **Fitting `skill_noise_ratio` to Appendix A's worked example** (`FL-003`,
 `AI-002`). The plan I started from asserted the formula was "confirmed" by the

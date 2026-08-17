@@ -1,15 +1,107 @@
 {
+  "gemma3:1b": {
+    "model": "gemma3:1b",
+    "model_pinned": "gemma3:1b@8648f39daa8fbf5b18c",
+    "backend": "ollama",
+    "schema_constrained": true,
+    "profiles_run": 25,
+    "threads": null,
+    "load_s": null,
+    "peak_rss_mb": 39.6,
+    "wall_s_per_profile": {
+      "mean": 2.68,
+      "p50": 2.69,
+      "max": 4.36
+    },
+    "tokens": {
+      "prompt_mean": 242.5,
+      "completion_mean": 26.2
+    },
+    "output_validity": {
+      "valid_json": 25,
+      "valid_role_family": 25,
+      "of": 25
+    },
+    "role_family_accuracy_vs_hand_labels": {
+      "correct": 17,
+      "of": 25,
+      "accuracy": 0.68
+    },
+    "confusions_true_to_predicted": [
+      "backend -> fullstack",
+      "data_analyst -> data_engineer",
+      "devops_sre -> fullstack",
+      "ml_engineer -> data_scientist",
+      "ml_engineer -> fullstack",
+      "non_engineering -> data_engineer",
+      "non_engineering -> fullstack"
+    ],
+    "llm_stats": {
+      "calls": 25,
+      "cache_hits": 0,
+      "prompt_tokens": 6063,
+      "completion_tokens": 656,
+      "wall_ms": 66906.5,
+      "errors": 0
+    }
+  },
+  "qwen2.5:3b-instruct": {
+    "model": "qwen2.5:3b-instruct",
+    "model_pinned": "qwen2.5:3b-instruct@357c53fb659c5076de1",
+    "backend": "ollama",
+    "schema_constrained": true,
+    "profiles_run": 25,
+    "threads": null,
+    "load_s": null,
+    "peak_rss_mb": 39.6,
+    "wall_s_per_profile": {
+      "mean": 5.03,
+      "p50": 4.88,
+      "max": 8.31
+    },
+    "tokens": {
+      "prompt_mean": 260.2,
+      "completion_mean": 28.0
+    },
+    "output_validity": {
+      "valid_json": 25,
+      "valid_role_family": 25,
+      "of": 25
+    },
+    "role_family_accuracy_vs_hand_labels": {
+      "correct": 20,
+      "of": 25,
+      "accuracy": 0.8
+    },
+    "confusions_true_to_predicted": [
+      "data_scientist -> ml_engineer",
+      "devops_sre -> backend",
+      "engineering_manager -> ml_engineer",
+      "non_engineering -> engineering_manager",
+      "non_engineering -> ml_engineer"
+    ],
+    "llm_stats": {
+      "calls": 25,
+      "cache_hits": 0,
+      "prompt_tokens": 6505,
+      "completion_tokens": 701,
+      "wall_ms": 125744.8,
+      "errors": 0
+    }
+  },
   "HuggingFaceTB/SmolLM2-135M-Instruct": {
     "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "model_pinned": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "backend": "transformers",
+    "schema_constrained": false,
     "profiles_run": 25,
     "threads": 8,
-    "load_s": 6.4,
-    "rss_after_load_mb": 562.0,
-    "peak_rss_mb": 870.5,
+    "load_s": 5.5,
+    "peak_rss_mb": 871.0,
     "wall_s_per_profile": {
-      "mean": 39.97,
-      "p50": 38.21,
-      "max": 59.2
+      "mean": 42.69,
+      "p50": 43.36,
+      "max": 63.98
     },
     "tokens": {
       "prompt_mean": 280.2,
@@ -24,6 +116,24 @@
       "correct": 1,
       "of": 25,
       "accuracy": 0.04
-    }
+    },
+    "confusions_true_to_predicted": [
+      "backend -> None",
+      "data_analyst -> None",
+      "data_analyst -> backend",
+      "data_engineer -> None",
+      "data_engineer -> backend",
+      "data_scientist -> None",
+      "devops_sre -> None",
+      "engineering_manager -> ['backend', 'frontend', 'fullstack', 'mobile', 'ml_engineer', 'data_engineer', 'data_analyst', 'data_scientist', 'devops_sre', 'qa', 'engineering_manager', 'non_engineering']",
+      "frontend -> None",
+      "fullstack -> None",
+      "ml_engineer -> None",
+      "ml_engineer -> backend",
+      "non_engineering -> None",
+      "non_engineering -> backend",
+      "qa -> None"
+    ],
+    "llm_stats": null
   }
 }

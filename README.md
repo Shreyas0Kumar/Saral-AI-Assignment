@@ -19,8 +19,12 @@ pip install -r requirements.txt
 pip install -e . --no-deps
 
 make all          # extract -> score -> evaluate -> delta, writes everything in out/
-make test         # 121 tests
+make test         # 126 tests
 ```
+
+Nothing above touches the network or loads a model. The two scripts that *do*
+use an LLM (`make regenerate-llm-artifacts` and `make cost-arm`) are deliberately
+off the default path, and their outputs are committed.
 
 `make all` prints:
 
@@ -137,12 +141,18 @@ Latency, warmed up, 500 iterations:
 
 Cost of one full pass over 1M profiles, derived from measured throughput:
 
-| arm | per profile | CPU-hours / 1M | Fargate ap-south-1 |
-|---|---|---|---|
-| signals_v1 (shipped) | 2.2 ms | 0.61 | **$0.03** |
-| `llm_per_row`, SmolLM2-135M on CPU | 40,430 ms | 11,231 | **$523** |
+| arm | per profile | CPU-hours / 1M | Fargate ap-south-1 | role_family accuracy |
+|---|---|---|---|---|
+| signals_v1 (shipped) | 2.2 ms | 0.61 | **$0.03** | 25/25 |
+| `llm_per_row`, gemma3:1b via Ollama, schema-constrained | 2,680 ms | 744 | **$34.66** | 17/25 |
 
-The LLM arm is ~18,400x more expensive **and** got 1 of 25 role families right.
+**~1,220x the cost for 68% of the accuracy.** The LLM arm is given a JSON schema
+so it cannot fail on syntax — 25 of 25 responses parse — which makes every error
+a reasoning error. It predicts `non_engineering` **zero times in 25**, putting
+the mechanical engineer with six years of AutoCAD into `data_engineer`: the exact
+failure the brief's Appendix A describes. It also returns `years_relevant` in
+months for 22 of 25, because a schema constrains shape and not meaning.
+
 Working in `INFRA.md`.
 
 ---
@@ -159,7 +169,7 @@ src/saral/
 config/        lexicon, aliases, adjacency, weights (YAML, hashed into the manifest)
                + committed LLM-derived artifacts
 scripts/       offline artifact generation. Never on the default path.
-tests/         121 tests
+tests/         126 tests
 ```
 
 `core/` imports no `sqlite3`, `requests`, `fastapi`, `torch`, `yaml` or `os`,
@@ -176,11 +186,14 @@ rather than a diff with a timestamp exclusion list.
   built and measured (`out/fallback_comparison.json`) but not shipped. It gets
   0 of 5 right on the titles the lexicon actually abstains on, because it has no
   way to abstain. Details in `WRITEUP.md`.
-* **A large generation model for the offline corpus.** `Phi-3.5-mini` is not
-  fully present in the local model cache and would need a 4.9 GB download, which
-  breaks the no-network constraint. The committed synthetic corpus was generated
-  by Claude Code instead (`AI_LOG.md` AI-005); `scripts/generate_llm_artifacts.py
-  --backend local` reproduces the pipeline with any local model.
+* **Nothing, on the offline-LLM path — this now runs properly.** The
+  `llm_per_row` cost arm runs `gemma3:1b` through Ollama with a JSON schema
+  constraining `role_family` to the taxonomy, and the synthetic corpus can be
+  regenerated with `make regenerate-llm-artifacts` (`qwen2.5:3b-instruct` via
+  Ollama). Neither is on the default path: `make all` still uses the committed
+  artifacts and needs no model. The *currently committed* corpus was generated
+  by Claude Code (`AI_LOG.md` AI-005) and is labelled as such rather than
+  relabelled to look more reproducible than it is.
 * **Partial signal recomputation.** The dependency map exists and reports which
   signals a change affects, but a dirty candidate has their whole `SignalRecord`
   recomputed. Extraction is ~2 ms; the saving that matters is candidate-level

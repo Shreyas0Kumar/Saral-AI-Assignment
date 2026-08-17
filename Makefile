@@ -54,7 +54,7 @@ docker-run:  ## run it
 # ---------------------------------------------------------------------------
 regenerate-llm-artifacts:  ## rebuild the synthetic corpus, distilled LR and centroids
 	$(PY) scripts/build_holdout_labels.py
-	$(PY) scripts/generate_llm_artifacts.py
+	$(PY) scripts/generate_llm_artifacts.py --backend ollama --model qwen2.5:3b-instruct
 	$(PY) scripts/train_distilled_lr.py
 	$(PY) scripts/compare_fallbacks.py
 

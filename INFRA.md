@@ -105,21 +105,48 @@ The comparison that matters is against the alternative design, an LLM call per
 profile. That was measured rather than assumed:
 
 ```
-llm_per_row, SmolLM2-135M-Instruct (the smallest credible model), CPU, 8 threads
-  measured    40.43 s/profile, 280 prompt + 56 completion tokens, 861 MB peak RSS
-  1M profiles 40,430,000 s = 11,231 vCPU-hours
-              11,231 × $0.04656                        = $523 per pass
-              × 4.33 weekly passes                     = $2,264 / month
+llm_per_row, gemma3:1b via Ollama, CPU, schema-constrained, temperature 0
+  measured    2.68 s/profile, 243 prompt + 26 completion tokens, quantised
+  1M profiles 2,680,000 s = 744 vCPU-hours
+              744 × $0.04656                           = $34.66 per pass
+              × 4.33 weekly passes                     = $150 / month
 
 shipped extractor
   1M profiles 0.61 vCPU-hours                          = $0.03 per pass
 ```
 
-**~18,400x the cost** (11,231 vCPU-hours against 0.61). And the accuracy given up is negative: the LLM arm
-produced valid JSON for 11 of 25 profiles and got **1 of 25** role families
-right against hand labels (4%), versus the shipped extractor's 25 of 25 on my
-own read of the same profiles. The smallest credible LLM is both uneconomic and
-wrong; a larger one fixes the accuracy and makes the cost worse.
+**~1,220x the cost** (744 vCPU-hours against 0.61), and that is against the
+*small* model. The output is constrained by a JSON schema handed to Ollama's
+`format` parameter, so `role_family` is restricted to the 12-value enum at decode
+time — the model cannot fail on syntax, and 25 of 25 responses parse. Every
+error below is therefore a reasoning error, which is the only kind worth
+measuring.
+
+**What the accuracy actually is: 17 of 25 (68%)**, against the shipped
+extractor's 25 of 25 on my own read of the same profiles. Three specific failures
+matter more than the headline:
+
+* **`non_engineering` is predicted 0 times out of 25.** The founder, the
+  mechanical engineer and the HR executive are all placed in engineering
+  families. SDB_10019 — six years of AutoCAD at Hero MotoCorp — is classified
+  `data_engineer`, which is the exact failure Appendix A of the brief describes.
+* **`seniority` is `"mid"` for 23 of 25.** The Atlassian engineering manager, the
+  Amazon SDE-3 and the three-month fresher are all "mid".
+* **`years_relevant` comes back in months for 22 of 25** — it copies
+  `duration_months` off the current role. The schema constrained the shape and
+  could not constrain the meaning.
+
+That last one is the operationally important lesson: **structured output buys
+parseability, not correctness.** A downstream filter reading
+`years_relevant BETWEEN 5 AND 9` against this field would silently select the
+wrong candidates forever, and every value would pass validation.
+
+An earlier draft of this section reported 40.4 s/profile and 4% accuracy from a
+SmolLM2-135M run on a naive `transformers` loop with no output constraint. That
+number was wrong in my own favour — most of its "errors" were unparseable JSON,
+not wrong answers — and it is corrected here. Both runs are kept in
+`out/llm_cost_arm.json`; the difference between them is itself the finding. See
+`FAILURE_LOG.md` FL-009.
 
 **When does the answer flip to GPU?** For this component, never — a GPU cannot
 accelerate a hash lookup. The question really applies to the `g4dn.xlarge`

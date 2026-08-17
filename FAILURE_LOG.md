@@ -300,3 +300,93 @@ an argument for making byte-level reproducibility a routine check rather than a
 claim in a README.
 
 **Cost.** 20 minutes.
+
+---
+
+## FL-009 | 2026-08-17 | phase 3 | cost arm -> WRITEUP
+**Symptom.** With Ollama available I re-ran the `llm_per_row` arm properly, and
+it contradicted my own published number. My earlier harness (HuggingFace
+`transformers`, SmolLM2-135M, no output constraint) reported **40.4 s/profile,
+11/25 valid JSON, 4% accuracy**. Ollama running **gemma3:1b** — a model 7x
+larger — reported **2.68 s/profile, 25/25 valid JSON, 68% accuracy**.
+
+Faster, bigger, and seventeen times more accurate. One of those two runs was
+measuring something other than what I claimed.
+
+**Hypothesis 1.** gemma3:1b is simply a much better model than SmolLM2-135M.
+  Checked by: true, but it cannot explain the *speed*. A 1B model is not 15x
+  faster than a 135M model on the same CPU.
+  Result: rejected as the main cause.
+
+**Hypothesis 2.** My transformers harness was the problem, not the model.
+  Checked by: compared the two paths. Mine used a naive `model.generate()` loop
+  with `max_new_tokens=80` and no KV-cache tuning, in float32-ish bf16 on an
+  unoptimised PyTorch CPU path, and **it did not constrain the output at all** —
+  I asked for JSON in the prompt and hoped. Ollama uses a llama.cpp backend with
+  a quantised model and, critically, accepts a **JSON schema** in its `format`
+  parameter, so `role_family` is constrained to the 12-value enum at decode time.
+  Result: confirmed. 14 of SmolLM2's 25 "failures" were the model failing to
+  emit parseable JSON, which I was scoring as a wrong role family.
+
+**Resolution.** gemma3:1b via Ollama, schema-constrained, temperature 0, fixed
+seed, is now the headline `llm_per_row` arm. The cost claim in INFRA.md drops
+from "~18,400x" to **"~1,200x"** and the accuracy comparison changes from "4%"
+to "68% against my 100%".
+
+**Why this matters more than the correction.** I had written that using a 7B
+model to prove LLMs are expensive would be "sandbagging" — and then sandbagged
+in the other direction by giving the small model a harness that could not
+succeed. A 4% accuracy figure invites exactly the right objection: *"you
+measured your own bad prompt."* It would have been the weakest number in the
+submission and the easiest to attack. The corrected figure is smaller and much
+harder to argue with.
+
+**What the fair test actually shows**, and it is stronger than the unfair one:
+
+* `non_engineering` is predicted **0 times in 25**. The founder, the mechanical
+  engineer and the HR executive are all placed in engineering families —
+  SDB_10019 (six years of AutoCAD) into `data_engineer`, which is *precisely*
+  the failure Appendix A describes. The rules-based extractor gets all three
+  right.
+* `seniority` is `"mid"` for **23 of 25**. The Atlassian engineering manager,
+  the Amazon SDE-3 and the three-month fresher are all "mid". The field carries
+  almost no information.
+* `years_relevant` is returned in **months for 22 of 25** — it copies
+  `duration_months` off the current role. The schema constrained the *shape* to
+  a number and could not constrain the *meaning*. This is the sharpest lesson
+  in the whole exercise: structured output guarantees parseability, not
+  correctness, and a pipeline that trusts a schema-valid field is trusting
+  nothing.
+
+The SmolLM2/transformers run is kept in `out/llm_cost_arm.json` under its own
+key and labelled as an unconstrained harness, because the difference between the
+two is the finding.
+
+**Cost.** 45 minutes, and it cost me a headline number I liked.
+
+---
+
+## FL-010 | 2026-08-18 | phase 3 | corpus provenance
+**Decision rule, written down before the measurement so it cannot be chosen
+afterwards.** With Ollama available I can regenerate the synthetic title corpus
+with `qwen2.5:3b-instruct`, which would make the artifact reproducible by a
+reviewer rather than only by me. That is a real provenance improvement and it is
+the plan's original design.
+
+The temptation is obvious: train on both, evaluate both on the hand-labelled
+holdout, and ship whichever scores higher. That is selection on the held-out set
+— the same contamination I refused in FL-003 — and it would quietly invalidate
+every number the holdout produces afterwards.
+
+**So the rule, fixed in advance:**
+
+* Ship the **Ollama-generated** corpus, on provenance grounds alone, because a
+  corpus a reviewer can rebuild beats one only I can.
+* Override that only if it **fails catastrophically**, defined before looking as:
+  accuracy-when-answering on the holdout drops below 0.90, or coverage collapses
+  below 0.50. Either would mean the artifact is broken, not merely different.
+* Report both either way, in `out/fallback_comparison.json`, so the effect of
+  corpus provenance on the distilled classifier is visible rather than a choice
+  I made quietly.
+
+**Result.** Recorded in the entry below once measured.

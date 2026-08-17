@@ -28,12 +28,12 @@ def _load(name: str) -> dict:
         return {}
 
 
-def _bar(value: float, maximum: float, width: int = 220) -> str:
+def _bar(value: float, maximum: float, width: int = 220, colour: str = "var(--accent)") -> str:
     pct = 0 if maximum <= 0 else max(0.0, min(1.0, value / maximum))
     return (
         f'<svg width="{width}" height="14" role="img">'
         f'<rect width="{width}" height="14" rx="3" fill="var(--track)"/>'
-        f'<rect width="{pct * width:.1f}" height="14" rx="3" fill="var(--accent)"/>'
+        f'<rect width="{pct * width:.1f}" height="14" rx="3" fill="{colour}"/>'
         f"</svg>"
     )
 
@@ -101,7 +101,9 @@ def render_dashboard() -> str:
         span = max(abs(v) for v in per_job.values()) or 1.0
         job_rows = "".join(
             f"<tr><td>{_esc(job)}</td><td class='num {'pos' if value > 0 else 'neg'}'>{value:+.4f}</td>"
-            f"<td>{_bar(abs(value), span, 160)}</td>"
+            # A regression drawn in the same colour as an improvement is a chart
+            # that hides its own bad news.
+            f"<td>{_bar(abs(value), span, 160, 'var(--pos)' if value > 0 else 'var(--neg)')}</td>"
             f"<td class='muted'>P@5 ceiling {_esc(metrics.get('metric_ceilings', {}).get(job, {}).get('precision@5_ceiling', '-'))}</td></tr>"
             for job, value in per_job.items()
         )
@@ -127,33 +129,56 @@ def render_dashboard() -> str:
             f"<tbody>{ladder_rows}</tbody></table></section>"
         )
 
-    # 5. cost per 1M profiles
+    # 5. cost per 1M profiles, with accuracy beside it
+    # Cost without accuracy is half an argument: "cheaper" only matters if the
+    # cheap thing is also right. The two columns belong in the same table.
     cost_rows = []
     derived = manifest.get("derived", {}).get("cost_per_1m_profiles") or {}
+    shipped_cost = None
     if derived:
+        shipped_cost = derived.get("cpu_hours_per_1m")
         cost_rows.append(
-            f"<tr><td>signals_v1 (shipped)</td><td class='num'>{derived.get('ms_per_record')} ms</td>"
+            f"<tr><td><strong>signals_v1 (shipped)</strong></td>"
+            f"<td class='num'>{derived.get('ms_per_record')} ms</td>"
             f"<td class='num'>{derived.get('cpu_hours_per_1m')} h</td>"
-            f"<td class='num'>${derived.get('usd_per_1m')}</td></tr>"
+            f"<td class='num'>${derived.get('usd_per_1m')}</td>"
+            f"<td class='num'>1x</td>"
+            f"<td class='num pos'>25/25</td></tr>"
         )
-    for model, payload in cost_arm.items():
+    for model, payload in sorted(
+        cost_arm.items(), key=lambda kv: kv[1].get("wall_s_per_profile", {}).get("mean", 0)
+    ):
         mean_s = payload.get("wall_s_per_profile", {}).get("mean")
-        if mean_s:
-            cpu_hours = mean_s * 1_000_000 / 3600
-            cost_rows.append(
-                f"<tr><td>llm_per_row &middot; {_esc(model)}</td>"
-                f"<td class='num'>{mean_s * 1000:,.0f} ms</td>"
-                f"<td class='num'>{cpu_hours:,.0f} h</td>"
-                f"<td class='num'>${cpu_hours * 0.04656:,.0f}</td></tr>"
-            )
+        if not mean_s:
+            continue
+        cpu_hours = mean_s * 1_000_000 / 3600
+        accuracy = payload.get("role_family_accuracy_vs_hand_labels", {})
+        constrained = payload.get("schema_constrained")
+        ratio = f"{cpu_hours / shipped_cost:,.0f}x" if shipped_cost else "-"
+        label = _esc(model.split("/")[-1])
+        if not constrained:
+            label += " <span class='muted'>(unconstrained harness)</span>"
+        cost_rows.append(
+            f"<tr><td>llm_per_row &middot; {label}</td>"
+            f"<td class='num'>{mean_s * 1000:,.0f} ms</td>"
+            f"<td class='num'>{cpu_hours:,.0f} h</td>"
+            f"<td class='num'>${cpu_hours * 0.04656:,.0f}</td>"
+            f"<td class='num neg'>{ratio}</td>"
+            f"<td class='num'>{_esc(accuracy.get('correct'))}/{_esc(accuracy.get('of'))}</td></tr>"
+        )
     if cost_rows:
         sections.append(
             "<section><h2>Cost of one full pass over 1M profiles</h2>"
-            "<table><thead><tr><th>arm</th><th>per profile</th><th>CPU-hours</th>"
-            "<th>Fargate ap-south-1</th></tr></thead>"
-            f"<tbody>{''.join(cost_rows)}</tbody></table>"
-            "<p class='muted'>Single-threaded, measured on this machine, priced at "
-            "$0.04656/vCPU-hour. Arithmetic is in INFRA.md.</p></section>"
+            "<div class='wrap'><table><thead><tr><th>arm</th><th>per profile</th>"
+            "<th>CPU-hours</th><th>Fargate ap-south-1</th><th>vs shipped</th>"
+            "<th>role_family correct</th></tr></thead>"
+            f"<tbody>{''.join(cost_rows)}</tbody></table></div>"
+            "<p class='muted'>Single-threaded on CPU, measured on this machine, priced at "
+            "$0.04656/vCPU-hour. The LLM arms are constrained by a JSON schema so "
+            "<code>role_family</code> cannot be malformed &mdash; every error is a reasoning "
+            "error. None of them ever predicts <code>non_engineering</code>, so the mechanical "
+            "engineer and the HR executive are scored as engineers. Arithmetic in INFRA.md."
+            "</p></section>"
         )
 
     # 6. incremental saving

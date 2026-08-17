@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from saral.contracts.taxonomy import RoleFamily  # noqa: E402
+from saral.adapters.llm.ollama_client import OllamaClient  # noqa: E402
 
 OUT_RUN = ROOT / "out" / "llm_per_row_run.jsonl"
 OUT_REPORT = ROOT / "out" / "llm_cost_arm.json"
@@ -93,6 +94,126 @@ def parse_reply(text: str) -> dict:
         return {}
 
 
+#: JSON schema handed to Ollama's `format` parameter. Constraining the output is
+#: what makes this a fair test: the model physically cannot return
+#: "ML/Data Engineering" or a paragraph of prose, so every remaining error is a
+#: reasoning error rather than a formatting one. Measuring a small model's
+#: ability to remember JSON syntax and calling that "accuracy" would be a
+#: strawman, and the whole point of this arm is that it is not one.
+RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "role_family": {"type": "string", "enum": FAMILIES},
+        "seniority": {
+            "type": "string",
+            "enum": ["intern", "junior", "mid", "senior", "staff+", "manager"],
+        },
+        "years_relevant": {"type": "number"},
+    },
+    "required": ["role_family", "seniority", "years_relevant"],
+}
+
+
+def _summarise(
+    rows,
+    model_id,
+    backend,
+    peak_rss,
+    pinned,
+    llm_stats=None,
+    load_s=None,
+    threads=None,
+):
+    n = len(rows)
+    total_s = sum(r["wall_s"] for r in rows)
+    graded = [r for r in rows if r["candidate_id"] in HAND_FAMILY]
+    correct = sum(1 for r in graded if r["role_family"] == HAND_FAMILY[r["candidate_id"]])
+    confusions = sorted(
+        {
+            (HAND_FAMILY[r["candidate_id"]], str(r["role_family"]))
+            for r in graded
+            if r["role_family"] != HAND_FAMILY[r["candidate_id"]]
+        }
+    )
+    return {
+        "model": model_id,
+        "model_pinned": pinned,
+        "backend": backend,
+        "schema_constrained": backend == "ollama",
+        "profiles_run": n,
+        "threads": threads,
+        "load_s": load_s,
+        "peak_rss_mb": round(peak_rss, 1),
+        "wall_s_per_profile": {
+            "mean": round(total_s / n, 2),
+            "p50": round(sorted(r["wall_s"] for r in rows)[n // 2], 2),
+            "max": round(max(r["wall_s"] for r in rows), 2),
+        },
+        "tokens": {
+            "prompt_mean": round(sum(r["prompt_tokens"] for r in rows) / n, 1),
+            "completion_mean": round(sum(r["completion_tokens"] for r in rows) / n, 1),
+        },
+        "output_validity": {
+            "valid_json": sum(r["valid_json"] for r in rows),
+            "valid_role_family": sum(r["valid_family"] for r in rows),
+            "of": n,
+        },
+        "role_family_accuracy_vs_hand_labels": {
+            "correct": correct,
+            "of": len(graded),
+            "accuracy": round(correct / len(graded), 4) if graded else None,
+        },
+        "confusions_true_to_predicted": ["%s -> %s" % (t, pr) for t, pr in confusions],
+        "llm_stats": llm_stats,
+        "_rows": rows,
+    }
+
+
+def run_ollama(model_id, profiles, cache_dir):
+    """The plan's original design: Ollama, schema-constrained, temperature 0."""
+    import psutil
+
+    client = OllamaClient(model=model_id, cache_dir=cache_dir)
+    if not client.available():
+        raise SystemExit("ollama does not have %s. Run: ollama pull %s" % (model_id, model_id))
+
+    process = psutil.Process()
+    peak_rss = process.memory_info().rss / 1e6
+    rows = []
+
+    for profile in profiles:
+        result = client.generate(build_prompt(profile), RESPONSE_SCHEMA)
+        parsed = parse_reply(result.get("text", ""))
+        peak_rss = max(peak_rss, process.memory_info().rss / 1e6)
+        elapsed = result.get("wall_ms", 0) / 1000
+        rows.append(
+            {
+                "candidate_id": profile["id"],
+                "model": model_id,
+                "backend": "ollama",
+                "prompt_tokens": result.get("prompt_tokens", 0),
+                "completion_tokens": result.get("completion_tokens", 0),
+                "wall_s": round(elapsed, 3),
+                "eval_s": round(result.get("eval_ms", 0) / 1000, 3),
+                "raw": result.get("text", "")[:400],
+                "parsed": parsed,
+                "role_family": parsed.get("role_family"),
+                "valid_json": bool(parsed),
+                "valid_family": parsed.get("role_family") in FAMILIES,
+                "from_cache": result.get("from_cache", False),
+                "error": result.get("error"),
+            }
+        )
+        print(
+            "  %s: %6.1fs %4d tok -> %s"
+            % (profile["id"], elapsed, result.get("completion_tokens", 0), parsed.get("role_family"))
+        )
+
+    return _summarise(
+        rows, model_id, "ollama", peak_rss, client.pinned_tag(), client.stats.to_dict()
+    )
+
+
 def run(model_id: str, profiles: list[dict], max_new_tokens: int, threads: int) -> dict:
     import psutil
     import torch
@@ -150,47 +271,20 @@ def run(model_id: str, profiles: list[dict], max_new_tokens: int, threads: int) 
             f"-> {parsed.get('role_family')}"
         )
 
-    n = len(rows)
-    total_s = sum(r["wall_s"] for r in rows)
-    graded = [r for r in rows if r["candidate_id"] in HAND_FAMILY]
-    correct = sum(1 for r in graded if r["role_family"] == HAND_FAMILY[r["candidate_id"]])
-
-    return {
-        "model": model_id,
-        "profiles_run": n,
-        "threads": threads,
-        "load_s": round(load_s, 1),
-        "rss_after_load_mb": round(rss_after_load, 1),
-        "peak_rss_mb": round(peak_rss, 1),
-        "wall_s_per_profile": {
-            "mean": round(total_s / n, 2),
-            "p50": round(sorted(r["wall_s"] for r in rows)[n // 2], 2),
-            "max": round(max(r["wall_s"] for r in rows), 2),
-        },
-        "tokens": {
-            "prompt_mean": round(sum(r["prompt_tokens"] for r in rows) / n, 1),
-            "completion_mean": round(sum(r["completion_tokens"] for r in rows) / n, 1),
-        },
-        "output_validity": {
-            "valid_json": sum(r["valid_json"] for r in rows),
-            "valid_role_family": sum(r["valid_family"] for r in rows),
-            "of": n,
-        },
-        "role_family_accuracy_vs_hand_labels": {
-            "correct": correct,
-            "of": len(graded),
-            "accuracy": round(correct / len(graded), 4) if graded else None,
-        },
-        "_rows": rows,
-    }
+    return _summarise(
+        rows, model_id, "transformers", peak_rss, model_id,
+        load_s=round(load_s, 1), threads=threads,
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", default="HuggingFaceTB/SmolLM2-135M-Instruct")
+    parser.add_argument("--backend", choices=["ollama", "transformers"], default="ollama")
+    parser.add_argument("--model", default="gemma3:1b")
     parser.add_argument("--limit", type=int, default=0, help="0 = all 25 profiles")
     parser.add_argument("--max-new-tokens", type=int, default=80)
     parser.add_argument("--threads", type=int, default=8)
+    parser.add_argument("--cache", action="store_true", help="cache responses on disk")
     args = parser.parse_args()
 
     profiles = [
@@ -201,8 +295,12 @@ def main() -> None:
     if args.limit:
         profiles = profiles[: args.limit]
 
-    print(f"running {args.model} over {len(profiles)} profiles on {args.threads} CPU threads")
-    result = run(args.model, profiles, args.max_new_tokens, args.threads)
+    print(f"running {args.model} ({args.backend}) over {len(profiles)} profiles on CPU")
+    if args.backend == "ollama":
+        cache = ROOT / "out" / "llm_cache" if args.cache else None
+        result = run_ollama(args.model, profiles, cache)
+    else:
+        result = run(args.model, profiles, args.max_new_tokens, args.threads)
     rows = result.pop("_rows")
 
     with OUT_RUN.open("a", encoding="utf-8", newline="\n") as handle:
