@@ -113,4 +113,5 @@ def test_health_is_not_unconditionally_ok(monkeypatch, client):
 def test_dashboard_renders(client):
     response = client.get("/dashboard")
     assert response.status_code == 200
-    assert "LLM calls on the hot path" in response.text
+    assert "Every language model tested misreads" in response.text
+    assert "signal layer" in response.text.lower()

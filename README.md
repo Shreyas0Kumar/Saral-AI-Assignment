@@ -71,9 +71,22 @@ curl -s -X POST localhost:8000/score \
   | python -m json.tool
 ```
 
-`GET /dashboard` renders the metrics, the per-job deltas, the cost table and a
-per-job candidate drill-down with reason codes. Served from the same process;
-no second port, no Streamlit.
+`GET /dashboard` renders seven panels from `out/`, in the order the numbers
+should be read: the SDB_10019 head-to-head, the signal-layer distributions
+(role family, seniority, confidence), baseline-vs-system with the honest
+verdict, per-job deltas, the ablation ladder, the cost/accuracy table, Part 3
+materiality, and a per-job candidate drill-down with reason codes.
+
+Charts are inline SVG with hover tooltips — no CDN, no chart library, renders
+offline. Single-series bars take one hue (bar length already encodes magnitude);
+signed deltas use a diverging pair around a neutral zero rule; the palette was
+run through a contrast/CVD validator in both light and dark mode rather than
+eyeballed. Served from the same process; no second port, no Streamlit.
+
+The editorial rule for the page: **a number only earns a panel if it could have
+come out differently.** "LLM calls on the hot path: 0" was the original hero and
+it is a restatement of the architecture, not a measurement — it could never have
+read anything else. It was cut.
 
 ### Docker
 
