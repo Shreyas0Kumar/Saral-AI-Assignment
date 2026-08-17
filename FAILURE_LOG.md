@@ -158,3 +158,59 @@ person has actually worked in. It now fires for exactly SDB_10010 and
 SDB_10019, which are the two profiles it exists for.
 
 **Cost.** 15 minutes.
+
+---
+
+## FL-006 | 2026-08-17 | phase 3 | fallback classifiers -> WRITEUP
+**Symptom.** The distilled LR reported 100% accuracy on everything it answered
+(32/32) over the hand-labelled held-out entries. A perfect score on a held-out
+set is a reason to look harder, not to celebrate.
+
+**Hypothesis 1.** Label leakage -- the holdout got into training.
+  Checked by: the training corpus is 528 synthetic titles; the holdout is 45
+  real experience entries from `candidates.jsonl`. Different files, different
+  provenance, no shared rows.
+  Result: rejected as literal leakage.
+
+**Hypothesis 2.** *Surface-form* leakage -- the holdout titles are common
+  enough that the same strings appear in the synthetic corpus.
+  Checked by: normalised every holdout title and intersected with the training
+  corpus. **32 of 42 (76%) appear verbatim.** Then split accuracy by that
+  boundary. The 32 it answered are exactly the 32 it had seen. Of the 10 novel
+  titles it answered **zero**.
+  Result: confirmed. Measured generalisation is not 100%, it is undefined --
+  the classifier answered no novel title at all.
+
+**Hypothesis 3.** Then perhaps the semantic fallback generalises where the
+  sparse one cannot -- that is the whole argument for keeping MiniLM.
+  Checked by: built the MiniLM nearest-centroid arm and evaluated on the same
+  split. It answers all 10 novel titles and gets **0 of 10** right
+  ("Software Engineer" -> ml_engineer, "SDE II" -> devops_sre,
+  "Design Engineer" -> engineering_manager).
+  Result: rejected, and worse than rejected -- it is confidently wrong where
+  the LR is silent.
+
+**Resolution.** Narrowed to the only population a fallback ever sees in
+production: the titles where the lexicon genuinely abstains. There are 5 in this
+corpus. The LR answers **0 of 5**; the MiniLM centroid answers 5 of 5 and gets
+**0 of 5** right.
+
+So the measured contribution of the fallback layer on this corpus is zero, and
+this is reported as zero. What changed as a result:
+
+* The claim for shipping the LR is no longer "it classifies better". It is that
+  it **abstains correctly**, so it can only ever fill a gap and never override
+  a decision the lexicon got right. That is a safety property, and it is the
+  one property that was actually measured.
+* MiniLM is cut on evidence rather than on image size. It has no abstention
+  threshold that works here: cosine against a centroid always has an argmax.
+* The five ambiguous titles are resolved *correctly* by the lexicon's context
+  vote (`SDE II` + `Java, Spring Boot` -> backend), i.e. by the primary path,
+  not the fallback. The architecture was already covering the case the fallback
+  was hired for.
+* `DECISIONS.md` D2 was rewritten. Its original reasoning ("classification
+  difference was inside noise while the cost difference was measurable") was
+  too generous to my own component.
+
+**Cost.** 50 minutes, and it removed a claim I would otherwise have made in the
+writeup and been unable to defend in review.

@@ -1,0 +1,126 @@
+{
+  "base_as_of": "2025-08-01",
+  "delta_as_of": "2026-08-16",
+  "candidates_total": 25,
+  "delta_records": 10,
+  "delta_fields_seen": 19,
+  "events_written": 19,
+  "materiality_counts": {
+    "medium": 8,
+    "high": 7,
+    "low": 2,
+    "noise": 2
+  },
+  "recomputed": 7,
+  "recomputed_candidates": [
+    "SDB_10001",
+    "SDB_10002",
+    "SDB_10003",
+    "SDB_10009",
+    "SDB_10010",
+    "SDB_10024",
+    "SDB_10025"
+  ],
+  "affected_signals_by_candidate": {
+    "SDB_10001": [
+      "claimed_skills_unverified",
+      "confidence",
+      "core_skills",
+      "reason_codes",
+      "role_family",
+      "role_family_alt",
+      "seniority",
+      "skill_noise_ratio",
+      "switch_intent",
+      "tenure_stability",
+      "years_relevant",
+      "years_total"
+    ],
+    "SDB_10002": [
+      "claimed_skills_unverified",
+      "confidence",
+      "core_skills",
+      "reason_codes",
+      "role_family",
+      "role_family_alt",
+      "seniority",
+      "skill_noise_ratio",
+      "switch_intent",
+      "tenure_stability",
+      "years_relevant",
+      "years_total"
+    ],
+    "SDB_10003": [
+      "claimed_skills_unverified",
+      "confidence",
+      "core_skills",
+      "reason_codes",
+      "skill_noise_ratio"
+    ],
+    "SDB_10009": [
+      "reason_codes",
+      "switch_intent"
+    ],
+    "SDB_10010": [
+      "claimed_skills_unverified",
+      "confidence",
+      "core_skills",
+      "reason_codes",
+      "role_family",
+      "role_family_alt",
+      "seniority",
+      "skill_noise_ratio",
+      "switch_intent",
+      "tenure_stability",
+      "years_relevant",
+      "years_total"
+    ],
+    "SDB_10024": [
+      "reason_codes",
+      "switch_intent"
+    ],
+    "SDB_10025": [
+      "claimed_skills_unverified",
+      "confidence",
+      "core_skills",
+      "reason_codes",
+      "role_family",
+      "role_family_alt",
+      "seniority",
+      "skill_noise_ratio",
+      "switch_intent",
+      "tenure_stability",
+      "years_relevant",
+      "years_total"
+    ]
+  },
+  "unknown_candidates_created": [],
+  "saving": {
+    "measured": {
+      "records_processed_full": 25,
+      "records_processed_incremental": 7,
+      "full_pass_wall_s": 0.081,
+      "incremental_wall_s": 0.0356,
+      "extract_ms_per_record": 3.2404
+    },
+    "reduction": {
+      "records": "7/25",
+      "factor": 3.57,
+      "note": "The incremental pass is slower in wall clock here because it also hashes 7 field groups per record, parses the feed and writes events, and 25 records is far too small for the extraction saving to dominate. The number that scales is records-recomputed, not this run's clock."
+    },
+    "projected_at_1m_profiles": {
+      "assumed_change_rate": 0.28,
+      "assumption_note": "7 of 25 candidates changed materially in this feed. Projecting that rate to 1M is an extrapolation from one 10-record feed and should be replaced with an observed weekly churn rate before it is used for capacity planning.",
+      "full_recompute_usd": 0.0442,
+      "incremental_usd": 0.0124,
+      "saved_usd": 0.0318,
+      "basis": "measured 3.240 ms/record single-threaded, priced at Fargate ap-south-1 $0.04656/vCPU-hr"
+    }
+  },
+  "health": {
+    "status": "healthy",
+    "signals": 25,
+    "signals_version": "1.0.0",
+    "change_events": 38
+  }
+}

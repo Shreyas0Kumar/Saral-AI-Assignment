@@ -14,7 +14,9 @@ version: "1.0.0"
 aliases:
   react: [react.js, reactjs, react js, react 18]
   react native: [reactnative, react-native]
-  next.js: [nextjs, next js]
+  # "next" is listed so that stripping the ".js" suffix lands back on the
+  # canonical form rather than on the English word.
+  next.js: [nextjs, next js, next]
   node.js: [nodejs, node js, node]
   express.js: [expressjs, express js, express]
   vue.js: [vuejs, vue js, vue]

@@ -1,0 +1,45 @@
+{"candidate_id": "SDB_10001", "entry_index": 0, "title": "Senior Software Engineer", "company": "Razorpay", "context": "Own payments ledger service. 12k rps peak. Migrated Celery->Kafka consumers. Python Kafka PostgreSQL", "role_family": "backend"}
+{"candidate_id": "SDB_10001", "entry_index": 1, "title": "Software Engineer", "company": "Freshworks", "context": "Built billing APIs in Django, moved to FastAPI. Python Django", "role_family": "backend"}
+{"candidate_id": "SDB_10002", "entry_index": 0, "title": "Machine Learning Engineer", "company": "Flipkart", "context": "Search ranking. Trained cross-encoder reranker, +6% NDCG@10. Owns embedding refresh pipeline. PyTorch Transformers FAISS", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10002", "entry_index": 1, "title": "Data Scientist", "company": "Mu Sigma", "context": "Client analytics, forecasting. Python SQL", "role_family": "data_scientist"}
+{"candidate_id": "SDB_10003", "entry_index": 0, "title": "Data Engineer II", "company": "Zeta", "context": "Own 300+ Airflow DAGs. Cut nightly batch 6h->90m by repartitioning Spark jobs. Apache Spark Airflow", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10003", "entry_index": 1, "title": "Data Engineer", "company": "Persistent Systems", "context": "SQL", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10004", "entry_index": 0, "title": "Data Analyst", "company": "Deloitte", "context": "Client dashboards, ad-hoc SQL, monthly reporting packs. SQL Power BI", "role_family": "data_analyst"}
+{"candidate_id": "SDB_10005", "entry_index": 0, "title": "Founder & CEO", "company": "Stealth", "context": "", "role_family": "non_engineering"}
+{"candidate_id": "SDB_10005", "entry_index": 1, "title": "Program Manager", "company": "Amazon", "context": "", "role_family": "non_engineering"}
+{"candidate_id": "SDB_10006", "entry_index": 0, "title": "Backend Developer", "company": "TCS", "context": "Maintain legacy Node services for a banking client. Node.js", "role_family": "backend"}
+{"candidate_id": "SDB_10007", "entry_index": 0, "title": "Applied Scientist", "company": "Sprinklr", "context": "Built RAG eval harness used by 4 teams. Fine-tuned a 7B model for ticket routing. PyTorch LangChain", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10007", "entry_index": 1, "title": "Research Assistant", "company": "IISc", "context": "Information retrieval lab. 2 workshop papers. Python", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10008", "entry_index": 0, "title": "QA Engineer", "company": "Infostretch", "context": "Selenium", "role_family": "qa"}
+{"candidate_id": "SDB_10009", "entry_index": 0, "title": "Staff Engineer", "company": "PhonePe", "context": "Internal developer platform. Cut deploy time 22m->4m. Go Kubernetes", "role_family": "devops_sre"}
+{"candidate_id": "SDB_10009", "entry_index": 1, "title": "SRE", "company": "Grofers", "context": "Python Linux", "role_family": "devops_sre"}
+{"candidate_id": "SDB_10010", "entry_index": 0, "title": "Data Science Intern", "company": "Cognifront", "context": "Built a movie recommender using cosine similarity. Python", "role_family": "data_scientist"}
+{"candidate_id": "SDB_10011", "entry_index": 0, "title": "Senior Data Engineer", "company": "Publicis Sapient", "context": "Lakehouse migration for a retail client, 4TB/day. PySpark Databricks", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10011", "entry_index": 1, "title": "Data Engineer", "company": "Xebia", "context": "SQL", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10012", "entry_index": 0, "title": "Frontend Engineer", "company": "CRED", "context": "Rewrote onboarding flow, LCP 3.1s -> 1.2s. React TypeScript", "role_family": "frontend"}
+{"candidate_id": "SDB_10012", "entry_index": 1, "title": "UI Developer", "company": "Zeta", "context": "React", "role_family": "frontend"}
+{"candidate_id": "SDB_10013", "entry_index": 0, "title": "SDE II", "company": "Salesforce", "context": "Java Spring Boot", "role_family": "backend"}
+{"candidate_id": "SDB_10013", "entry_index": 1, "title": "SDE I", "company": "Infosys", "context": "Java", "role_family": "backend"}
+{"candidate_id": "SDB_10014", "entry_index": 0, "title": "AI Engineer", "company": "FutureTech Labs", "context": "Built text-to-SQL agent and a document Q&A system for 3 clients. LangChain FastAPI", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10014", "entry_index": 1, "title": "Software Intern", "company": "Casepoint", "context": "", "role_family": null}
+{"candidate_id": "SDB_10015", "entry_index": 0, "title": "ML Engineer", "company": "Swiggy", "context": "Home feed ranking. Moved serving to Triton, p99 180ms -> 45ms. PyTorch Triton Inference Server", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10015", "entry_index": 1, "title": "ML Engineer", "company": "Myntra", "context": "TensorFlow", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10016", "entry_index": 0, "title": "Product Analyst", "company": "Meesho", "context": "Own growth experiments readout. Ran 40+ A/B tests. SQL A/B Testing", "role_family": "data_analyst"}
+{"candidate_id": "SDB_10016", "entry_index": 1, "title": "Business Analyst", "company": "ZS Associates", "context": "Excel", "role_family": "data_analyst"}
+{"candidate_id": "SDB_10017", "entry_index": 0, "title": "Full Stack Developer", "company": "Growisto", "context": "React", "role_family": "fullstack"}
+{"candidate_id": "SDB_10017", "entry_index": 1, "title": "Software Engineer", "company": "Yellow.ai", "context": "Node.js", "role_family": "backend"}
+{"candidate_id": "SDB_10017", "entry_index": 2, "title": "Associate Engineer", "company": "Impetus", "context": "JavaScript", "role_family": null}
+{"candidate_id": "SDB_10018", "entry_index": 0, "title": "Analytics Engineer", "company": "Chargebee", "context": "Own the dbt project: 340 models, cut CI runtime 40%. dbt Snowflake", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10018", "entry_index": 1, "title": "Data Analyst", "company": "Zoho", "context": "SQL", "role_family": "data_analyst"}
+{"candidate_id": "SDB_10019", "entry_index": 0, "title": "Design Engineer", "company": "Hero MotoCorp", "context": "AutoCAD", "role_family": "non_engineering"}
+{"candidate_id": "SDB_10020", "entry_index": 0, "title": "Engineering Manager", "company": "Atlassian", "context": "", "role_family": "engineering_manager"}
+{"candidate_id": "SDB_10020", "entry_index": 1, "title": "Senior ML Engineer", "company": "Uber", "context": "Python", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10020", "entry_index": 2, "title": "Software Engineer", "company": "Yahoo", "context": "", "role_family": null}
+{"candidate_id": "SDB_10021", "entry_index": 0, "title": "Freelance Data Engineer", "company": "Self-employed", "context": "Pipelines for 4 D2C brands. Mostly BigQuery + Dataflow. BigQuery", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10021", "entry_index": 1, "title": "Data Engineer", "company": "Dunzo", "context": "Python", "role_family": "data_engineer"}
+{"candidate_id": "SDB_10022", "entry_index": 0, "title": "SDE III", "company": "Amazon", "context": "Fulfillment tech. Serverless event pipelines, 40M events/day. Python AWS Lambda", "role_family": "backend"}
+{"candidate_id": "SDB_10022", "entry_index": 1, "title": "SDE II", "company": "Adobe", "context": "Python", "role_family": "backend"}
+{"candidate_id": "SDB_10023", "entry_index": 0, "title": "HR Executive", "company": "Zydus", "context": "", "role_family": "non_engineering"}
+{"candidate_id": "SDB_10024", "entry_index": 0, "title": "ML Engineer", "company": "Ather Energy", "context": "On-vehicle perception. Quantized detector to INT8, 3.1x speedup on Jetson. PyTorch TensorRT", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10024", "entry_index": 1, "title": "Computer Vision Intern", "company": "Qualcomm", "context": "OpenCV", "role_family": "ml_engineer"}
+{"candidate_id": "SDB_10025", "entry_index": 0, "title": "Backend Engineer", "company": "Paytm", "context": "Wallet service. Owned refunds pipeline. Python Django", "role_family": "backend"}

@@ -1,0 +1,593 @@
+{
+  "run_id": "2026-08-17T10:03:11Z",
+  "versions": {
+    "signals": "1.0.0",
+    "scoring": "1.0.0"
+  },
+  "labelled_pairs": 55,
+  "jobs": 4,
+  "candidates_ranked_per_job": 25,
+  "list_conventions": {
+    "primary": "condensed -- rank all 25, then keep labelled candidates in order",
+    "also_reported": "zero_fill -- unlabelled candidates scored as relevance 0",
+    "why": "Zero-fill penalises a system for surfacing a good candidate the recruiter never graded, which is exactly what this system is built to do. Condensed lists flatter every system equally, so they compare ordering quality but cannot be used to claim a win. Both are shown so the reader can check the ranking does not flip between conventions."
+  },
+  "metric_ceilings": {
+    "JD-001": {
+      "n_labelled": 16,
+      "n_relevant_at_threshold_2": 5,
+      "precision@5_ceiling": 1.0
+    },
+    "JD-002": {
+      "n_labelled": 15,
+      "n_relevant_at_threshold_2": 5,
+      "precision@5_ceiling": 1.0
+    },
+    "JD-003": {
+      "n_labelled": 14,
+      "n_relevant_at_threshold_2": 5,
+      "precision@5_ceiling": 1.0
+    },
+    "JD-004": {
+      "n_labelled": 10,
+      "n_relevant_at_threshold_2": 2,
+      "precision@5_ceiling": 0.4
+    }
+  },
+  "ceiling_note": "JD-004 has only 2 candidates graded >= 2, so its Precision@5 cannot exceed 0.40 for any system. Averaging Precision@5 across jobs without disclosing that is quietly misleading, which is why the per-job ceilings are printed next to the per-job values.",
+  "systems": {
+    "baseline_cosine": {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "description": "all-MiniLM-L6-v2 cosine over raw_query vs text_context_full",
+      "ndcg@10": {
+        "mean": 0.8783,
+        "per_job": {
+          "JD-001": 0.6543,
+          "JD-002": 0.8875,
+          "JD-003": 0.9831,
+          "JD-004": 0.9885
+        }
+      },
+      "ndcg@5": {
+        "mean": 0.8933,
+        "per_job": {
+          "JD-001": 0.7033,
+          "JD-002": 0.8812,
+          "JD-003": 1.0,
+          "JD-004": 0.9885
+        }
+      },
+      "precision@5": {
+        "mean": 0.7,
+        "per_job": {
+          "JD-001": 0.6,
+          "JD-002": 0.8,
+          "JD-003": 1.0,
+          "JD-004": 0.4
+        }
+      },
+      "mrr": {
+        "mean": 1.0
+      },
+      "recall@10": {
+        "mean": 0.9
+      },
+      "zero_fill": {
+        "ndcg@10": {
+          "mean": 0.8627,
+          "per_job": {
+            "JD-001": 0.6209,
+            "JD-002": 0.8875,
+            "JD-003": 0.9538,
+            "JD-004": 0.9885
+          }
+        },
+        "precision@5": {
+          "mean": 0.6
+        }
+      }
+    },
+    "signals_v1_lexicon_lr": {
+      "description": "rules + distilled logistic regression fallback",
+      "shipped": true,
+      "ndcg@10": {
+        "mean": 0.9701,
+        "per_job": {
+          "JD-001": 0.9485,
+          "JD-002": 0.997,
+          "JD-003": 0.9538,
+          "JD-004": 0.9812
+        }
+      },
+      "ndcg@5": {
+        "mean": 0.9435,
+        "per_job": {
+          "JD-001": 0.9156,
+          "JD-002": 1.0,
+          "JD-003": 0.9093,
+          "JD-004": 0.9491
+        }
+      },
+      "precision@5": {
+        "mean": 0.75,
+        "per_job": {
+          "JD-001": 0.8,
+          "JD-002": 1.0,
+          "JD-003": 0.8,
+          "JD-004": 0.4
+        }
+      },
+      "mrr": {
+        "mean": 1.0
+      },
+      "recall@10": {
+        "mean": 1.0
+      },
+      "zero_fill": {
+        "ndcg@10": {
+          "mean": 0.9515,
+          "per_job": {
+            "JD-001": 0.9478,
+            "JD-002": 0.9806,
+            "JD-003": 0.936,
+            "JD-004": 0.9415
+          }
+        },
+        "precision@5": {
+          "mean": 0.75
+        }
+      }
+    }
+  },
+  "ablation_ladder": {
+    "1_role_family_prefilter_only": {
+      "description": "role adjacency alone, nothing else",
+      "ndcg@10": 0.9417,
+      "precision@5": 0.75,
+      "per_job_ndcg@10": {
+        "JD-001": 0.9331,
+        "JD-002": 0.9819,
+        "JD-003": 0.8689,
+        "JD-004": 0.983
+      }
+    },
+    "2_plus_must_have_scoring": {
+      "description": "+ must-have and good-to-have coverage, claims counted at face value",
+      "ndcg@10": 0.9572,
+      "precision@5": 0.7,
+      "per_job_ndcg@10": {
+        "JD-001": 0.924,
+        "JD-002": 0.9756,
+        "JD-003": 0.9538,
+        "JD-004": 0.9755
+      },
+      "delta_ndcg@10_vs_previous_rung": 0.0155
+    },
+    "3_plus_evidence_tiering": {
+      "description": "+ the evidence-vs-claim discount on must-haves",
+      "ndcg@10": 0.9572,
+      "precision@5": 0.7,
+      "per_job_ndcg@10": {
+        "JD-001": 0.924,
+        "JD-002": 0.9756,
+        "JD-003": 0.9538,
+        "JD-004": 0.9755
+      },
+      "delta_ndcg@10_vs_previous_rung": 0.0
+    },
+    "4_full_system": {
+      "description": "+ seniority band, production evidence, location, intent, tenure, soft cap",
+      "ndcg@10": 0.9701,
+      "precision@5": 0.75,
+      "per_job_ndcg@10": {
+        "JD-001": 0.9485,
+        "JD-002": 0.997,
+        "JD-003": 0.9538,
+        "JD-004": 0.9812
+      },
+      "delta_ndcg@10_vs_previous_rung": 0.0129
+    }
+  },
+  "uncertainty": {
+    "n_labelled_pairs": 55,
+    "n_jobs": 4,
+    "ndcg@10_delta": {
+      "point": 0.0918,
+      "ci95": [
+        -0.0048,
+        0.2029
+      ],
+      "method": "bootstrap over labelled pairs resampled within job, 1000 resamples, seed 20260817"
+    },
+    "per_job_ndcg@10_delta": {
+      "JD-001": 0.2942,
+      "JD-002": 0.1095,
+      "JD-003": -0.0293,
+      "JD-004": -0.0073
+    },
+    "independence_caveat": "Pairs within a job share a query, a grader and a grading session, so the pair-level interval above is optimistically narrow. The true independent unit is the job, of which there are 4. The per-job deltas are listed individually so the reader can see whether the effect is consistent or is one job carrying the mean.",
+    "paired_permutation_over_jobs": {
+      "p_one_sided": 0.25,
+      "n_jobs": 4,
+      "minimum_attainable_p": 0.0625,
+      "note": "exact sign-flip test over 4 per-job deltas; with n=4 the smallest attainable one-sided p is 0.0625, so this test cannot establish significance at 0.05 regardless of effect size"
+    },
+    "verdict": "The improvement of +0.092 NDCG@10 is NOT distinguishable from noise at n=55 labelled pairs: the 95% interval [-0.005, 0.203] contains zero. The per-job deltas do not agree in sign (+0.294, +0.110, -0.029, -0.007), so the mean is being carried by a subset of jobs rather than reflecting a consistent effect. With 4 jobs as the independent unit, no experiment on this dataset can establish significance; the honest reading is that these numbers rank the approaches for further testing, not that they settle the question."
+  },
+  "error_analysis": {
+    "method": "The three labelled pairs giving up the most discounted gain against the ideal ordering. Nothing was tuned after reading this section -- identified fixes are listed as future work in WRITEUP.md.",
+    "worst_misses": [
+      {
+        "job_id": "JD-002",
+        "candidate_id": "SDB_10002",
+        "label": 3,
+        "rank_given_condensed": 2,
+        "rank_ideal": 1,
+        "ndcg_loss": 2.5835,
+        "fit_score": 82,
+        "score_breakdown": {
+          "role_match": 30.0,
+          "skill_overlap": 18.17,
+          "seniority_fit": 15.0,
+          "evidence_of_shipping": 12.0,
+          "location_fit": 8.0,
+          "switch_intent": 3.5,
+          "tenure_stability": 3.0
+        },
+        "driving_component": "tenure_stability",
+        "missing_must_haves": [
+          "offline eval (NDCG, recall@k)"
+        ],
+        "role_family": "ml_engineer",
+        "years_relevant": 5.39,
+        "reason_codes": [
+          "role_match:ml_engineer",
+          "must_have_met:python",
+          "must_have_met:pytorch_or_tensorflow",
+          "must_have_met:embeddings_retrieval_ranking",
+          "must_have_missing:offline_eval_ndcg_recall_k",
+          "good_to_have_met:vector_db_faiss_pgvector",
+          "good_to_have_met:mlops",
+          "years_in_band:5.4 in [3,7]"
+        ]
+      },
+      {
+        "job_id": "JD-003",
+        "candidate_id": "SDB_10011",
+        "label": 3,
+        "rank_given_condensed": 4,
+        "rank_ideal": 2,
+        "ndcg_loss": 1.4018,
+        "fit_score": 82,
+        "score_breakdown": {
+          "role_match": 30.0,
+          "skill_overlap": 16.37,
+          "seniority_fit": 9.0,
+          "evidence_of_shipping": 12.0,
+          "location_fit": 8.0,
+          "switch_intent": 1.49,
+          "tenure_stability": 5.0
+        },
+        "driving_component": "switch_intent",
+        "missing_must_haves": [],
+        "role_family": "data_engineer",
+        "years_relevant": 7.0,
+        "reason_codes": [
+          "role_match:data_engineer",
+          "must_have_met:sql",
+          "must_have_claimed_only:python",
+          "must_have_claimed_only:airflow_or_equivalent_orchestrator",
+          "must_have_met:batch_pipeline_ownership|evidence=Lakehouse migration for a retail client, 4TB/day.",
+          "good_to_have_met:spark",
+          "good_to_have_met:cloud_warehouse_snowflake_bigquery_redshift",
+          "years_above_max:7.0>6"
+        ]
+      },
+      {
+        "job_id": "JD-001",
+        "candidate_id": "SDB_10022",
+        "label": 3,
+        "rank_given_condensed": 3,
+        "rank_ideal": 2,
+        "ndcg_loss": 0.9165,
+        "fit_score": 64,
+        "score_breakdown": {
+          "role_match": 30.0,
+          "skill_overlap": 9.0,
+          "seniority_fit": 15.0,
+          "evidence_of_shipping": 12.0,
+          "location_fit": 8.0,
+          "switch_intent": 1.49,
+          "tenure_stability": 5.0
+        },
+        "driving_component": "switch_intent",
+        "missing_must_haves": [
+          "FastAPI or Django",
+          "PostgreSQL"
+        ],
+        "role_family": "backend",
+        "years_relevant": 5.0,
+        "reason_codes": [
+          "role_match:backend",
+          "must_have_met:python",
+          "must_have_missing:fastapi_or_django",
+          "must_have_missing:postgresql",
+          "must_have_met:production_ownership_of_a_high_traffic_service|evidence=Fulfillment tech. Serverless event pipelines, 40M events/day.",
+          "years_in_band:5.0 in [5,9]",
+          "evidence_of_scale:Fulfillment tech. Serverless event pipelines, 40M events/day.",
+          "location_exact:bengaluru"
+        ]
+      }
+    ]
+  },
+  "latency_ms": {
+    "extract": {
+      "batch_1": {
+        "p50": 0.958,
+        "p95": 4.2,
+        "iterations": 500
+      },
+      "batch_100": {
+        "p50": 148.129,
+        "p95": 168.572,
+        "iterations": 30
+      },
+      "unit": "milliseconds for the whole batch",
+      "note": "batch_1 is per-record. The distribution is bimodal by design: the lexicon path is microseconds, and the distilled-LR fallback loads lazily on first miss, so p95 exposes the fallback cost rather than hiding it in a flat mean. See DECISIONS.md D18."
+    },
+    "machine": {
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.11.9",
+      "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+      "cores_physical": 8,
+      "cores_logical": 16,
+      "ram_gb": 42.1
+    }
+  },
+  "telemetry": {
+    "extract": {
+      "records_in": 25,
+      "records_out": 25,
+      "wall_ms": 62.629,
+      "peak_rss_mb": 157.4,
+      "rss_delta_mb": 1.1,
+      "counters": {
+        "fallback_invocations": 0,
+        "fallback_rate": 0.0,
+        "lexicon_abstentions": 11,
+        "titles_classified": 70
+      }
+    },
+    "baseline_embed": {
+      "records_in": 25,
+      "records_out": 25,
+      "wall_ms": 12579.49,
+      "peak_rss_mb": 693.7,
+      "rss_delta_mb": 536.2,
+      "counters": {}
+    },
+    "score": {
+      "records_in": 100,
+      "records_out": 100,
+      "wall_ms": 23.897,
+      "peak_rss_mb": 694.0,
+      "rss_delta_mb": 0.3,
+      "counters": {}
+    }
+  },
+  "fallback_comparison": {
+    "distilled_lr": {
+      "train_corpus": {
+        "titles": 528,
+        "source": "claude-opus-5 (offline, AI_LOG AI-005)"
+      },
+      "synthetic_cv_accuracy": 0.8447,
+      "holdout_real_entries": 42,
+      "holdout_unlabelled_excluded": 3,
+      "holdout_accuracy_forced": 0.7857,
+      "holdout_accuracy_when_answering": 1.0,
+      "holdout_coverage": 0.7619,
+      "errors": [
+        {
+          "title": "Senior Software Engineer",
+          "context": "Own payments ledger service. 12k rps peak. Migrated Celery->",
+          "true": "backend",
+          "pred": "mobile",
+          "p": 0.231
+        },
+        {
+          "title": "Software Engineer",
+          "context": "Built billing APIs in Django, moved to FastAPI. Python Djang",
+          "true": "backend",
+          "pred": "mobile",
+          "p": 0.231
+        },
+        {
+          "title": "Research Assistant",
+          "context": "Information retrieval lab. 2 workshop papers. Python",
+          "true": "ml_engineer",
+          "pred": "non_engineering",
+          "p": 0.299
+        },
+        {
+          "title": "Staff Engineer",
+          "context": "Internal developer platform. Cut deploy time 22m->4m. Go Kub",
+          "true": "devops_sre",
+          "pred": "ml_engineer",
+          "p": 0.429
+        },
+        {
+          "title": "SDE II",
+          "context": "Java Spring Boot",
+          "true": "backend",
+          "pred": "non_engineering",
+          "p": 0.221
+        },
+        {
+          "title": "SDE I",
+          "context": "Java",
+          "true": "backend",
+          "pred": "non_engineering",
+          "p": 0.221
+        },
+        {
+          "title": "Software Engineer",
+          "context": "Node.js",
+          "true": "backend",
+          "pred": "mobile",
+          "p": 0.231
+        },
+        {
+          "title": "SDE III",
+          "context": "Fulfillment tech. Serverless event pipelines, 40M events/day",
+          "true": "backend",
+          "pred": "non_engineering",
+          "p": 0.221
+        },
+        {
+          "title": "SDE II",
+          "context": "Python",
+          "true": "backend",
+          "pred": "non_engineering",
+          "p": 0.221
+        }
+      ],
+      "artifact_kb": 180.2,
+      "latency_ms": {
+        "p50": 0.8406,
+        "p95": 1.0929,
+        "n": 840
+      },
+      "runtime_deps": [
+        "scikit-learn",
+        "scipy",
+        "numpy"
+      ]
+    },
+    "method": {
+      "training_corpus": {
+        "titles": 528,
+        "source": "claude-opus-5 (offline, AI_LOG AI-005)"
+      },
+      "holdout": {
+        "labelled_entries": 42,
+        "titles_appearing_verbatim_in_training": 32,
+        "provenance": "hand-labelled by the author after writing the lexicon but before either fallback existed: independent of the models, not of the author"
+      },
+      "why_not_ndcg": "the lexicon abstains on a handful of the 70 titles in the corpus, so the fallback cannot move a ranking metric over 55 labels; selection is made on these metrics and on cost instead"
+    },
+    "distilled_lr_eval": {
+      "n": 42,
+      "accuracy_forced": 0.7619,
+      "coverage": 0.7619,
+      "accuracy_when_answering": 1.0,
+      "seen_verbatim_in_training": {
+        "n": 32
+      },
+      "novel_titles": {
+        "n": 10,
+        "answered": 0,
+        "correct": 0,
+        "accuracy_when_answering": null
+      },
+      "titles_the_lexicon_abstains_on": {
+        "n": 5,
+        "answered": 0,
+        "correct": 0,
+        "accuracy_when_answering": null
+      },
+      "errors_when_answering": [],
+      "latency_ms": {
+        "p50": 1.552,
+        "p95": 2.6574
+      },
+      "artifact_kb": 180.2,
+      "image_cost": "scikit-learn + scipy, ~90MB"
+    },
+    "minilm_centroid_eval": {
+      "n": 42,
+      "accuracy_forced": 0.7381,
+      "coverage": 1.0,
+      "accuracy_when_answering": 0.7381,
+      "seen_verbatim_in_training": {
+        "n": 32
+      },
+      "novel_titles": {
+        "n": 10,
+        "answered": 10,
+        "correct": 0,
+        "accuracy_when_answering": 0.0
+      },
+      "titles_the_lexicon_abstains_on": {
+        "n": 5,
+        "answered": 5,
+        "correct": 0,
+        "accuracy_when_answering": 0.0
+      },
+      "errors_when_answering": [
+        {
+          "title": "Senior Software Engineer",
+          "true": "backend",
+          "pred": "ml_engineer"
+        },
+        {
+          "title": "Software Engineer",
+          "true": "backend",
+          "pred": "ml_engineer"
+        },
+        {
+          "title": "Applied Scientist",
+          "true": "ml_engineer",
+          "pred": "data_scientist"
+        },
+        {
+          "title": "Research Assistant",
+          "true": "ml_engineer",
+          "pred": "data_scientist"
+        },
+        {
+          "title": "Staff Engineer",
+          "true": "devops_sre",
+          "pred": "engineering_manager"
+        },
+        {
+          "title": "SDE II",
+          "true": "backend",
+          "pred": "devops_sre"
+        },
+        {
+          "title": "SDE I",
+          "true": "backend",
+          "pred": "devops_sre"
+        },
+        {
+          "title": "Software Engineer",
+          "true": "backend",
+          "pred": "ml_engineer"
+        },
+        {
+          "title": "Design Engineer",
+          "true": "non_engineering",
+          "pred": "engineering_manager"
+        },
+        {
+          "title": "SDE III",
+          "true": "backend",
+          "pred": "devops_sre"
+        },
+        {
+          "title": "SDE II",
+          "true": "backend",
+          "pred": "devops_sre"
+        }
+      ],
+      "latency_ms": {
+        "p50": 7.4063,
+        "p95": 9.7011
+      },
+      "artifact_kb": 20.1,
+      "cold_start_s": 0.36,
+      "image_cost": "torch + sentence-transformers + the 90MB model, ~800MB"
+    }
+  }
+}

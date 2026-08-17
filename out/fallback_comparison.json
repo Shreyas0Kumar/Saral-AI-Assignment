@@ -1,0 +1,215 @@
+{
+  "distilled_lr": {
+    "train_corpus": {
+      "titles": 528,
+      "source": "claude-opus-5 (offline, AI_LOG AI-005)"
+    },
+    "synthetic_cv_accuracy": 0.8447,
+    "holdout_real_entries": 42,
+    "holdout_unlabelled_excluded": 3,
+    "holdout_accuracy_forced": 0.7857,
+    "holdout_accuracy_when_answering": 1.0,
+    "holdout_coverage": 0.7619,
+    "errors": [
+      {
+        "title": "Senior Software Engineer",
+        "context": "Own payments ledger service. 12k rps peak. Migrated Celery->",
+        "true": "backend",
+        "pred": "mobile",
+        "p": 0.231
+      },
+      {
+        "title": "Software Engineer",
+        "context": "Built billing APIs in Django, moved to FastAPI. Python Djang",
+        "true": "backend",
+        "pred": "mobile",
+        "p": 0.231
+      },
+      {
+        "title": "Research Assistant",
+        "context": "Information retrieval lab. 2 workshop papers. Python",
+        "true": "ml_engineer",
+        "pred": "non_engineering",
+        "p": 0.299
+      },
+      {
+        "title": "Staff Engineer",
+        "context": "Internal developer platform. Cut deploy time 22m->4m. Go Kub",
+        "true": "devops_sre",
+        "pred": "ml_engineer",
+        "p": 0.429
+      },
+      {
+        "title": "SDE II",
+        "context": "Java Spring Boot",
+        "true": "backend",
+        "pred": "non_engineering",
+        "p": 0.221
+      },
+      {
+        "title": "SDE I",
+        "context": "Java",
+        "true": "backend",
+        "pred": "non_engineering",
+        "p": 0.221
+      },
+      {
+        "title": "Software Engineer",
+        "context": "Node.js",
+        "true": "backend",
+        "pred": "mobile",
+        "p": 0.231
+      },
+      {
+        "title": "SDE III",
+        "context": "Fulfillment tech. Serverless event pipelines, 40M events/day",
+        "true": "backend",
+        "pred": "non_engineering",
+        "p": 0.221
+      },
+      {
+        "title": "SDE II",
+        "context": "Python",
+        "true": "backend",
+        "pred": "non_engineering",
+        "p": 0.221
+      }
+    ],
+    "artifact_kb": 180.2,
+    "latency_ms": {
+      "p50": 0.8406,
+      "p95": 1.0929,
+      "n": 840
+    },
+    "runtime_deps": [
+      "scikit-learn",
+      "scipy",
+      "numpy"
+    ]
+  },
+  "method": {
+    "training_corpus": {
+      "titles": 528,
+      "source": "claude-opus-5 (offline, AI_LOG AI-005)"
+    },
+    "holdout": {
+      "labelled_entries": 42,
+      "titles_appearing_verbatim_in_training": 32,
+      "provenance": "hand-labelled by the author after writing the lexicon but before either fallback existed: independent of the models, not of the author"
+    },
+    "why_not_ndcg": "the lexicon abstains on a handful of the 70 titles in the corpus, so the fallback cannot move a ranking metric over 55 labels; selection is made on these metrics and on cost instead"
+  },
+  "distilled_lr_eval": {
+    "n": 42,
+    "accuracy_forced": 0.7619,
+    "coverage": 0.7619,
+    "accuracy_when_answering": 1.0,
+    "seen_verbatim_in_training": {
+      "n": 32
+    },
+    "novel_titles": {
+      "n": 10,
+      "answered": 0,
+      "correct": 0,
+      "accuracy_when_answering": null
+    },
+    "titles_the_lexicon_abstains_on": {
+      "n": 5,
+      "answered": 0,
+      "correct": 0,
+      "accuracy_when_answering": null
+    },
+    "errors_when_answering": [],
+    "latency_ms": {
+      "p50": 1.552,
+      "p95": 2.6574
+    },
+    "artifact_kb": 180.2,
+    "image_cost": "scikit-learn + scipy, ~90MB"
+  },
+  "minilm_centroid_eval": {
+    "n": 42,
+    "accuracy_forced": 0.7381,
+    "coverage": 1.0,
+    "accuracy_when_answering": 0.7381,
+    "seen_verbatim_in_training": {
+      "n": 32
+    },
+    "novel_titles": {
+      "n": 10,
+      "answered": 10,
+      "correct": 0,
+      "accuracy_when_answering": 0.0
+    },
+    "titles_the_lexicon_abstains_on": {
+      "n": 5,
+      "answered": 5,
+      "correct": 0,
+      "accuracy_when_answering": 0.0
+    },
+    "errors_when_answering": [
+      {
+        "title": "Senior Software Engineer",
+        "true": "backend",
+        "pred": "ml_engineer"
+      },
+      {
+        "title": "Software Engineer",
+        "true": "backend",
+        "pred": "ml_engineer"
+      },
+      {
+        "title": "Applied Scientist",
+        "true": "ml_engineer",
+        "pred": "data_scientist"
+      },
+      {
+        "title": "Research Assistant",
+        "true": "ml_engineer",
+        "pred": "data_scientist"
+      },
+      {
+        "title": "Staff Engineer",
+        "true": "devops_sre",
+        "pred": "engineering_manager"
+      },
+      {
+        "title": "SDE II",
+        "true": "backend",
+        "pred": "devops_sre"
+      },
+      {
+        "title": "SDE I",
+        "true": "backend",
+        "pred": "devops_sre"
+      },
+      {
+        "title": "Software Engineer",
+        "true": "backend",
+        "pred": "ml_engineer"
+      },
+      {
+        "title": "Design Engineer",
+        "true": "non_engineering",
+        "pred": "engineering_manager"
+      },
+      {
+        "title": "SDE III",
+        "true": "backend",
+        "pred": "devops_sre"
+      },
+      {
+        "title": "SDE II",
+        "true": "backend",
+        "pred": "devops_sre"
+      }
+    ],
+    "latency_ms": {
+      "p50": 7.4063,
+      "p95": 9.7011
+    },
+    "artifact_kb": 20.1,
+    "cold_start_s": 0.36,
+    "image_cost": "torch + sentence-transformers + the 90MB model, ~800MB"
+  }
+}
