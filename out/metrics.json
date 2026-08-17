@@ -355,13 +355,13 @@
   "latency_ms": {
     "extract": {
       "batch_1": {
-        "p50": 0.844,
-        "p95": 3.863,
+        "p50": 0.755,
+        "p95": 3.496,
         "iterations": 500
       },
       "batch_100": {
-        "p50": 184.586,
-        "p95": 231.405,
+        "p50": 120.503,
+        "p95": 141.624,
         "iterations": 30
       },
       "unit": "milliseconds for the whole batch",
@@ -380,8 +380,8 @@
     "extract": {
       "records_in": 50,
       "records_out": 50,
-      "wall_ms": 94.732,
-      "peak_rss_mb": 155.2,
+      "wall_ms": 72.917,
+      "peak_rss_mb": 155.3,
       "rss_delta_mb": 2.0,
       "counters": {
         "fallback_invocations": 0,
@@ -394,16 +394,16 @@
     "score": {
       "records_in": 200,
       "records_out": 200,
-      "wall_ms": 32.366,
-      "peak_rss_mb": 155.7,
+      "wall_ms": 22.959,
+      "peak_rss_mb": 155.8,
       "rss_delta_mb": 1.4,
       "counters": {}
     },
     "baseline_embed": {
       "records_in": 25,
       "records_out": 25,
-      "wall_ms": 2.57,
-      "peak_rss_mb": 155.4,
+      "wall_ms": 2.407,
+      "peak_rss_mb": 155.5,
       "rss_delta_mb": 0.2,
       "counters": {}
     }
@@ -628,13 +628,13 @@
       "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
       "profiles_run": 25,
       "threads": 8,
-      "load_s": 4.5,
-      "rss_after_load_mb": 555.5,
-      "peak_rss_mb": 861.3,
+      "load_s": 6.4,
+      "rss_after_load_mb": 562.0,
+      "peak_rss_mb": 870.5,
       "wall_s_per_profile": {
-        "mean": 40.43,
-        "p50": 40.78,
-        "max": 51.21
+        "mean": 39.97,
+        "p50": 38.21,
+        "max": 59.2
       },
       "tokens": {
         "prompt_mean": 280.2,

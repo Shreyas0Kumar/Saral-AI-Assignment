@@ -1,0 +1,69 @@
+{
+  "run_id": "2026-08-17T17:53:07Z",
+  "git_sha": "15da808",
+  "arm": "signals_v1_lexicon_lr",
+  "versions": {
+    "signals": "1.0.0",
+    "scoring": "1.0.0",
+    "lexicon": "1.0.0"
+  },
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.11.9",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "cores_physical": 8,
+    "cores_logical": 16,
+    "ram_gb": 42.1
+  },
+  "models": {
+    "baseline": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "config_hashes": {
+    "lexicon.yaml": "sha256:a128864dc7a767f46e27897b5b609abd2262c0e0a4d0b9067e1b3636bdb70420",
+    "skill_aliases.yaml": "sha256:c214251127eeb66b8630e552b32e0a5ada5f85c11e8050f86a612ce648571eac",
+    "adjacency.yaml": "sha256:6c8df7b91409d98b8e9bea640318064a2c8097ce6759cede37187d0249233d9b",
+    "weights.yaml": "sha256:c474cc79a80785d9825d1fceb3ddf616744d6d099e044b8ead160f9eb5ffa7c5"
+  },
+  "stages": {
+    "extract": {
+      "records_in": 50,
+      "records_out": 50,
+      "wall_ms": 72.917,
+      "peak_rss_mb": 155.3,
+      "rss_delta_mb": 2.0,
+      "counters": {
+        "fallback_invocations": 0,
+        "fallback_rate": 0.0,
+        "lexicon_abstention_rate": 0.1571,
+        "lexicon_abstentions": 11,
+        "titles_classified": 70
+      }
+    },
+    "score": {
+      "records_in": 200,
+      "records_out": 200,
+      "wall_ms": 22.959,
+      "peak_rss_mb": 155.8,
+      "rss_delta_mb": 1.4,
+      "counters": {}
+    },
+    "baseline_embed": {
+      "records_in": 25,
+      "records_out": 25,
+      "wall_ms": 2.407,
+      "peak_rss_mb": 155.5,
+      "rss_delta_mb": 0.2,
+      "counters": {}
+    }
+  },
+  "derived": {
+    "cost_per_1m_profiles": {
+      "stage": "extract",
+      "ms_per_record": 1.4583,
+      "cpu_hours_per_1m": 0.4051,
+      "assumed_gb": 0.5,
+      "usd_per_1m": 0.0199,
+      "rate_note": "fargate ap-south-1 on-demand $0.04656/vCPU-hr + $0.00511/GB-hr"
+    }
+  }
+}

@@ -3,13 +3,13 @@
     "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
     "profiles_run": 25,
     "threads": 8,
-    "load_s": 4.5,
-    "rss_after_load_mb": 555.5,
-    "peak_rss_mb": 861.3,
+    "load_s": 6.4,
+    "rss_after_load_mb": 562.0,
+    "peak_rss_mb": 870.5,
     "wall_s_per_profile": {
-      "mean": 40.43,
-      "p50": 40.78,
-      "max": 51.21
+      "mean": 39.97,
+      "p50": 38.21,
+      "max": 59.2
     },
     "tokens": {
       "prompt_mean": 280.2,

@@ -15,5 +15,7 @@ dist/
 # Runtime state. Rebuilt by `make all`; the committed artefacts live in config/.
 *.db
 *.sqlite3
-out/run_manifest*.json
+# out/run_manifest.json IS committed: INFRA.md cites it as the source for every
+# throughput and cost figure, and a claim whose evidence is gitignored is not
+# a claim a reviewer can check.
 .coverage
