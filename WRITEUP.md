@@ -356,5 +356,19 @@ requiring overlap resolution (no overlap exists anywhere in the corpus —
 `AI-003`), and it predicted out-of-order timestamps in the delta feed that are
 not there (the duplicate-line trap is what is actually there — `FL-006`
 neighbours). In both cases the generated code was structurally sound and
-empirically untested; every one of the six `FAILURE_LOG.md` entries comes from
+empirically untested; every one of the eight `FAILURE_LOG.md` entries comes from
 running it against the data rather than from reading it.
+
+The last two are worth singling out because they were caught at the very end, by
+checking artefacts against each other rather than by reading code. FL-007: the
+throughput figure I was about to publish in INFRA.md was exactly 2x too high,
+because the telemetry divided an accumulated wall time by a non-accumulated
+record count — visible only because the same quantity was measured twice by
+different code paths and the two disagreed. FL-008: a byte-level diff between a
+clean `git clone` and the source repo showed `change_events.jsonl` differing
+only in `event_id`, which was a `uuid4`. Fixing it to be content-addressed
+turned out to matter for more than reproducibility: `event_id` is the primary
+key of the `change_events` table and inserts use `INSERT OR IGNORE`, so with
+random ids a re-applied feed would have written duplicate rows in the database
+while my in-memory idempotency test kept passing. I had a green test and a real
+bug at the same time, at different layers.

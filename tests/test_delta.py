@@ -349,3 +349,44 @@ def test_affected_signals_reports_what_the_map_says():
     assert "switch_intent" in affected_signals({"is_open_to_work"})
     assert "years_relevant" in affected_signals({"experience"})
     assert affected_signals({"location"}) == set()
+
+
+# --------------------------------------------------------------------------
+# Reproducibility of the emitted artefact
+# --------------------------------------------------------------------------
+def test_event_ids_are_content_addressed_not_random(base_state, delta_records):
+    """Two runs over identical input must emit byte-identical events.
+
+    A `uuid4` here would break the reproducibility claim for
+    `out/change_events.jsonl` and, worse, defeat idempotency at the storage
+    layer: re-applying a feed would insert the same logical event under a new
+    primary key, so `INSERT OR IGNORE` could never dedupe it.
+    """
+    import copy as _copy
+
+    first = apply_delta(_copy.deepcopy(base_state), delta_records)
+    second = apply_delta(_copy.deepcopy(base_state), delta_records)
+
+    assert [e.event_id for e in first.events] == [e.event_id for e in second.events]
+    assert [e.model_dump() for e in first.events] == [e.model_dump() for e in second.events]
+
+
+def test_event_ids_are_unique_within_a_run(base_state, delta_records):
+    result = apply_delta(base_state, delta_records)
+    ids = [e.event_id for e in result.events]
+    assert len(ids) == len(set(ids))
+
+
+def test_reinserting_the_same_events_is_a_storage_noop(tmp_path, base_state, delta_records):
+    """The property content-addressed ids exist to give."""
+    from saral.adapters.store.sqlite_repo import SqliteRepo
+
+    repo = SqliteRepo(tmp_path / "t.db")
+    result = apply_delta(base_state, delta_records)
+    with repo.transaction():
+        repo.record_events(result.events)
+    once = repo.event_count()
+    with repo.transaction():
+        repo.record_events(result.events)
+    assert repo.event_count() == once
+    repo.close()

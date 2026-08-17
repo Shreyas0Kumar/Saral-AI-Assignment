@@ -26,7 +26,7 @@ fresh two. See DECISIONS.md D11.
 from __future__ import annotations
 
 import copy
-import uuid
+import hashlib
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -40,7 +40,7 @@ from saral.core.delta.materiality import (
     stale_event,
 )
 from saral.core.delta.merge import apply_field, entry_key
-from saral.core.hashing import FIELD_GROUPS, field_group_hash
+from saral.core.hashing import FIELD_GROUPS, canonical_json, field_group_hash
 
 #: Keys the crawler adds that are not profile content.
 _META = {"_observed_at", "_source", "id"}
@@ -80,6 +80,24 @@ class DeltaResult:
     fields_seen: int
 
 
+def _event_id(
+    candidate_id: str, observed_at: str, change_type: str, field_name: str, new_value: Any
+) -> str:
+    """Content-addressed, not random.
+
+    A `uuid4` here would make two runs over identical input produce different
+    bytes, which breaks the reproducibility claim for `out/change_events.jsonl`.
+    Worse, it would defeat idempotency at the *storage* layer: re-applying a feed
+    would insert the same logical event again under a new primary key, so
+    `INSERT OR IGNORE` could never dedupe it. Deriving the id from the event's
+    own content makes re-insertion a genuine no-op.
+    """
+    digest = hashlib.sha256(
+        canonical_json([candidate_id, observed_at, change_type, field_name, new_value]).encode()
+    ).hexdigest()
+    return f"evt_{digest[:22]}"
+
+
 def _event(
     candidate_id: str,
     observed_at: str,
@@ -94,7 +112,7 @@ def _event(
     affected: set[str] | None = None,
 ) -> ChangeEvent:
     return ChangeEvent(
-        event_id=f"evt_{uuid.uuid4().hex[:22]}",
+        event_id=_event_id(candidate_id, observed_at, change_type, field_name, new_value),
         candidate_id=candidate_id,
         observed_at=observed_at,
         source=source,

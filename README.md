@@ -19,7 +19,7 @@ pip install -r requirements.txt
 pip install -e . --no-deps
 
 make all          # extract -> score -> evaluate -> delta, writes everything in out/
-make test         # 118 tests
+make test         # 121 tests
 ```
 
 `make all` prints:
@@ -159,7 +159,7 @@ src/saral/
 config/        lexicon, aliases, adjacency, weights (YAML, hashed into the manifest)
                + committed LLM-derived artifacts
 scripts/       offline artifact generation. Never on the default path.
-tests/         118 tests
+tests/         121 tests
 ```
 
 `core/` imports no `sqlite3`, `requests`, `fastapi`, `torch`, `yaml` or `os`,
@@ -193,5 +193,5 @@ rather than a diff with a timestamp exclusion list.
 ## Files worth reading first
 
 1. `WRITEUP.md` -- what was built, what failed, where it fails silently, AI usage.
-2. `FAILURE_LOG.md` -- six entries with the hypotheses that were abandoned.
+2. `FAILURE_LOG.md` -- eight entries with the hypotheses that were abandoned.
 3. `INFRA.md` -- one page, AWS, with the arithmetic visible.

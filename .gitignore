@@ -19,3 +19,4 @@ dist/
 # throughput and cost figure, and a claim whose evidence is gitignored is not
 # a claim a reviewer can check.
 .coverage
+bash.exe.stackdump

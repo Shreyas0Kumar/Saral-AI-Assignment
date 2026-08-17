@@ -258,3 +258,45 @@ a second opinion as much as the model did.
 
 **Cost.** 30 minutes. Caught at the last possible moment, by checking a document
 against the data it claimed to summarise rather than trusting my own manifest.
+
+---
+
+## FL-008 | 2026-08-17 | phase 8 | delta -> WRITEUP
+**Symptom.** Testing that a clean `git clone` reproduces `out/` exactly,
+`candidate_signals.jsonl` and `rankings.jsonl` came back byte-identical and
+`change_events.jsonl` did not.
+
+**Hypothesis 1.** A signal genuinely differs, so a downstream event differs.
+  Checked by: diffed the two files. Every field of every event matched --
+  candidate, timestamp, old value, new value, materiality, affected signals.
+  Only `event_id` differed.
+  Result: rejected; the content is identical.
+
+**Hypothesis 2.** `event_id` is `uuid4`, so it is random by construction.
+  Checked by: read the line. It was.
+  Result: confirmed.
+
+**Resolution.** `event_id` is now content-addressed:
+`sha256(candidate_id, observed_at, change_type, field, new_value)`. Two things
+follow, and the second is the one that matters.
+
+1. `out/change_events.jsonl` is reproducible, so the reproducibility claim in
+   the README is true for all three output files rather than two of them.
+2. **Idempotency now holds at the storage layer, not only in memory.** The
+   in-memory apply loop was already idempotent, and I had a passing test saying
+   so. But `change_events` has `event_id` as its primary key and inserts with
+   `INSERT OR IGNORE` -- with random ids, re-applying a feed would have written
+   the same logical event again under a new key and the ignore clause could
+   never have fired. The test I had was measuring the property one layer above
+   where it would have failed in production.
+
+Added `test_reinserting_the_same_events_is_a_storage_noop`, which fails against
+the old implementation.
+
+**What is worth taking from this.** I had a green idempotency test and a real
+idempotency bug at the same time, because the test and the bug were at different
+layers. The clean-clone diff found it, and nothing else would have -- which is
+an argument for making byte-level reproducibility a routine check rather than a
+claim in a README.
+
+**Cost.** 20 minutes.

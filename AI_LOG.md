@@ -103,7 +103,7 @@ a reader to work out.
 ## AI-006 | 2026-08-17 | Claude Code | where it did NOT help
 **Task.** Everything measured in this submission.
 **Observation worth recording.** The generated code was consistently
-well-structured and consistently untested against reality. All seven
+well-structured and consistently untested against reality. All eight
 `FAILURE_LOG.md` entries came from running it, not from reading it:
 
 * the `as_of` assumption collapsed on contact with the data (FL-002),
@@ -113,9 +113,11 @@ well-structured and consistently untested against reality. All seven
   recruiter trust in the whole surface (FL-005),
 * the distilled classifier's 100% held-out accuracy was memorisation, and the
   semantic fallback I built to fix that got 0 of 10 novel titles right (FL-006),
-* and the throughput figure I was about to publish in INFRA.md was 2x too high
+* the throughput figure I was about to publish in INFRA.md was 2x too high
   because the telemetry divided an accumulated numerator by a non-accumulated
-  denominator (FL-007).
+  denominator (FL-007),
+* and a passing idempotency test coexisted with a real idempotency bug, because
+  the two were at different layers (FL-008).
 
 Each of those is the kind of error that survives code review and dies on
 contact with data. The division of labour that worked: the model wrote the
