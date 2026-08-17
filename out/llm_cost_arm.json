@@ -135,5 +135,47 @@
       "qa -> None"
     ],
     "llm_stats": null
+  },
+  "gemini-3.5-flash-lite": {
+    "model": "gemini-3.5-flash-lite",
+    "model_pinned": "gemini-3.5-flash-lite",
+    "backend": "gemini",
+    "schema_constrained": true,
+    "profiles_run": 25,
+    "threads": null,
+    "load_s": null,
+    "peak_rss_mb": 43.1,
+    "wall_s_per_profile": {
+      "mean": 1.25,
+      "p50": 1.29,
+      "max": 1.54
+    },
+    "tokens": {
+      "prompt_mean": 232.5,
+      "completion_mean": 32.9
+    },
+    "output_validity": {
+      "valid_json": 25,
+      "valid_role_family": 25,
+      "of": 25
+    },
+    "role_family_accuracy_vs_hand_labels": {
+      "correct": 24,
+      "of": 25,
+      "accuracy": 0.96
+    },
+    "cost_model": "per-token (hosted API); wall time is latency, not billed compute",
+    "confusions_true_to_predicted": [
+      "non_engineering -> data_scientist"
+    ],
+    "llm_stats": {
+      "calls": 25,
+      "cache_hits": 0,
+      "prompt_tokens": 5813,
+      "completion_tokens": 823,
+      "wall_ms": 31306.4,
+      "errors": 0,
+      "retries_on_429": 0
+    }
   }
 }

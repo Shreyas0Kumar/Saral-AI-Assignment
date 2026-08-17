@@ -355,13 +355,13 @@
   "latency_ms": {
     "extract": {
       "batch_1": {
-        "p50": 0.697,
-        "p95": 3.434,
+        "p50": 0.747,
+        "p95": 3.441,
         "iterations": 500
       },
       "batch_100": {
-        "p50": 107.582,
-        "p95": 121.475,
+        "p50": 108.335,
+        "p95": 121.712,
         "iterations": 30
       },
       "unit": "milliseconds for the whole batch",
@@ -380,9 +380,9 @@
     "extract": {
       "records_in": 50,
       "records_out": 50,
-      "wall_ms": 71.096,
+      "wall_ms": 71.591,
       "peak_rss_mb": 155.5,
-      "rss_delta_mb": 2.0,
+      "rss_delta_mb": 2.2,
       "counters": {
         "fallback_invocations": 0,
         "fallback_rate": 0.0,
@@ -394,15 +394,15 @@
     "score": {
       "records_in": 200,
       "records_out": 200,
-      "wall_ms": 23.828,
+      "wall_ms": 22.662,
       "peak_rss_mb": 156.0,
-      "rss_delta_mb": 1.4,
+      "rss_delta_mb": 1.5,
       "counters": {}
     },
     "baseline_embed": {
       "records_in": 25,
       "records_out": 25,
-      "wall_ms": 2.178,
+      "wall_ms": 2.303,
       "peak_rss_mb": 155.7,
       "rss_delta_mb": 0.2,
       "counters": {}
@@ -624,17 +624,109 @@
     }
   },
   "llm_per_row_cost_arm": {
+    "gemma3:1b": {
+      "model": "gemma3:1b",
+      "model_pinned": "gemma3:1b@8648f39daa8fbf5b18c",
+      "backend": "ollama",
+      "schema_constrained": true,
+      "profiles_run": 25,
+      "threads": null,
+      "load_s": null,
+      "peak_rss_mb": 39.6,
+      "wall_s_per_profile": {
+        "mean": 2.68,
+        "p50": 2.69,
+        "max": 4.36
+      },
+      "tokens": {
+        "prompt_mean": 242.5,
+        "completion_mean": 26.2
+      },
+      "output_validity": {
+        "valid_json": 25,
+        "valid_role_family": 25,
+        "of": 25
+      },
+      "role_family_accuracy_vs_hand_labels": {
+        "correct": 17,
+        "of": 25,
+        "accuracy": 0.68
+      },
+      "confusions_true_to_predicted": [
+        "backend -> fullstack",
+        "data_analyst -> data_engineer",
+        "devops_sre -> fullstack",
+        "ml_engineer -> data_scientist",
+        "ml_engineer -> fullstack",
+        "non_engineering -> data_engineer",
+        "non_engineering -> fullstack"
+      ],
+      "llm_stats": {
+        "calls": 25,
+        "cache_hits": 0,
+        "prompt_tokens": 6063,
+        "completion_tokens": 656,
+        "wall_ms": 66906.5,
+        "errors": 0
+      }
+    },
+    "qwen2.5:3b-instruct": {
+      "model": "qwen2.5:3b-instruct",
+      "model_pinned": "qwen2.5:3b-instruct@357c53fb659c5076de1",
+      "backend": "ollama",
+      "schema_constrained": true,
+      "profiles_run": 25,
+      "threads": null,
+      "load_s": null,
+      "peak_rss_mb": 39.6,
+      "wall_s_per_profile": {
+        "mean": 5.03,
+        "p50": 4.88,
+        "max": 8.31
+      },
+      "tokens": {
+        "prompt_mean": 260.2,
+        "completion_mean": 28.0
+      },
+      "output_validity": {
+        "valid_json": 25,
+        "valid_role_family": 25,
+        "of": 25
+      },
+      "role_family_accuracy_vs_hand_labels": {
+        "correct": 20,
+        "of": 25,
+        "accuracy": 0.8
+      },
+      "confusions_true_to_predicted": [
+        "data_scientist -> ml_engineer",
+        "devops_sre -> backend",
+        "engineering_manager -> ml_engineer",
+        "non_engineering -> engineering_manager",
+        "non_engineering -> ml_engineer"
+      ],
+      "llm_stats": {
+        "calls": 25,
+        "cache_hits": 0,
+        "prompt_tokens": 6505,
+        "completion_tokens": 701,
+        "wall_ms": 125744.8,
+        "errors": 0
+      }
+    },
     "HuggingFaceTB/SmolLM2-135M-Instruct": {
       "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "model_pinned": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "backend": "transformers",
+      "schema_constrained": false,
       "profiles_run": 25,
       "threads": 8,
-      "load_s": 6.4,
-      "rss_after_load_mb": 562.0,
-      "peak_rss_mb": 870.5,
+      "load_s": 5.5,
+      "peak_rss_mb": 871.0,
       "wall_s_per_profile": {
-        "mean": 39.97,
-        "p50": 38.21,
-        "max": 59.2
+        "mean": 42.69,
+        "p50": 43.36,
+        "max": 63.98
       },
       "tokens": {
         "prompt_mean": 280.2,
@@ -649,6 +741,66 @@
         "correct": 1,
         "of": 25,
         "accuracy": 0.04
+      },
+      "confusions_true_to_predicted": [
+        "backend -> None",
+        "data_analyst -> None",
+        "data_analyst -> backend",
+        "data_engineer -> None",
+        "data_engineer -> backend",
+        "data_scientist -> None",
+        "devops_sre -> None",
+        "engineering_manager -> ['backend', 'frontend', 'fullstack', 'mobile', 'ml_engineer', 'data_engineer', 'data_analyst', 'data_scientist', 'devops_sre', 'qa', 'engineering_manager', 'non_engineering']",
+        "frontend -> None",
+        "fullstack -> None",
+        "ml_engineer -> None",
+        "ml_engineer -> backend",
+        "non_engineering -> None",
+        "non_engineering -> backend",
+        "qa -> None"
+      ],
+      "llm_stats": null
+    },
+    "gemini-3.5-flash-lite": {
+      "model": "gemini-3.5-flash-lite",
+      "model_pinned": "gemini-3.5-flash-lite",
+      "backend": "gemini",
+      "schema_constrained": true,
+      "profiles_run": 25,
+      "threads": null,
+      "load_s": null,
+      "peak_rss_mb": 43.1,
+      "wall_s_per_profile": {
+        "mean": 1.25,
+        "p50": 1.29,
+        "max": 1.54
+      },
+      "tokens": {
+        "prompt_mean": 232.5,
+        "completion_mean": 32.9
+      },
+      "output_validity": {
+        "valid_json": 25,
+        "valid_role_family": 25,
+        "of": 25
+      },
+      "role_family_accuracy_vs_hand_labels": {
+        "correct": 24,
+        "of": 25,
+        "accuracy": 0.96
+      },
+      "cost_model": "per-token (hosted API); wall time is latency, not billed compute",
+      "confusions_true_to_predicted": [
+        "non_engineering -> data_scientist"
+      ],
+      "llm_stats": {
+        "calls": 25,
+        "cache_hits": 0,
+        "prompt_tokens": 5813,
+        "completion_tokens": 823,
+        "wall_ms": 31306.4,
+        "errors": 0,
+        "retries_on_429": 0
       }
     }
   }

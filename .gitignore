@@ -20,3 +20,8 @@ dist/
 # a claim a reviewer can check.
 .coverage
 bash.exe.stackdump
+
+# Cached LLM responses from the offline cost-arm script. Keyed by content hash,
+# opaque, and regenerable; the measured summaries in out/llm_cost_arm.json are
+# the evidence worth committing.
+out/llm_cache/

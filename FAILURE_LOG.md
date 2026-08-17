@@ -390,3 +390,84 @@ every number the holdout produces afterwards.
   I made quietly.
 
 **Result.** Recorded in the entry below once measured.
+
+---
+
+## FL-010 (result) | 2026-08-18 | phase 3 | corpus provenance
+**Outcome: the rule fired, and it fired against the option I wanted.**
+
+`qwen2.5:3b-instruct` produced a usable JSON array for **2 of the 12 families**
+(`backend` 46 titles, `mobile` 71). The other ten returned no parseable array at
+all despite the `format` schema constraining the response to
+`{"type":"array","items":{"type":"string"}}`. Final corpus: **106 titles across
+2 families**, against Claude's 528 across 12.
+
+That is catastrophic by the definition I wrote down beforehand — coverage did not
+merely drop below 0.50, ten of twelve taxonomy values would have had **zero**
+training examples. So the Claude-generated corpus stays, its `source` field still
+says so, and the qwen output is kept alongside as
+`config/synthetic_titles.qwen-failed.jsonl` rather than deleted.
+
+**Why the schema did not save it.** The same constrained-decoding approach works
+perfectly for the cost arm's small fixed object (25/25 valid across three
+models) and fails for a 45-element array. A long constrained array runs into
+generation-length limits and the model emits an unterminated structure that
+satisfies no parse. **Structured output is reliable in proportion to how short
+the structure is** — worth knowing before designing a pipeline around it.
+
+**The bug this exposed, which is the real finding.** The script *wrote the
+broken corpus over the good one*. Exit code 0, 106 titles, ten classes silently
+deleted. Nothing downstream would have failed: the distilled LR would have
+trained on 2 classes, loaded fine, predicted fine, and quietly never returned
+`ml_engineer` again. I only noticed because I checked the line count.
+
+`generate_llm_artifacts.py` now refuses to write if any family produced no
+titles, or if the corpus shrinks by more than 30%, and leaves the existing
+artifact untouched. A generation script that can destroy its own committed
+output on partial failure is worse than one that fails loudly.
+
+**Cost.** 50 minutes of generation time for a negative result, plus 10 to make
+the failure impossible to repeat.
+
+---
+
+## FL-011 | 2026-08-18 | phase 3 | hosted LLM arm -> WRITEUP
+**Symptom.** Added `gemini-3.5-flash-lite` through the Google AI Studio API as a
+hosted per-row arm, expecting it to lose on accuracy like the local models did.
+It scored **24 of 25** — better than qwen2.5:3b (20), gemma3:1b (17), and one
+error away from my own extractor.
+
+**What that does to my argument.** It removes accuracy as the reason to prefer
+rules. I had been leaning on "cheap *and* more accurate", and against a decent
+hosted model only the first half survives. The remaining case is still strong
+but it is a different case, and it is now stated as such in INFRA.md: ~1,800x
+cost, 1.25 s versus 1.5 ms of latency (which alone disqualifies it from a
+synchronous query path), free-tier rate limiting that produced HTTP 429 after 14
+consecutive calls and needed backoff, and a third-party dependency on the field
+that gates search.
+
+**The finding I did not expect, and the best single result in this submission.**
+SDB_10019 is the profile Appendix A of the brief holds up as the canonical
+failure: mechanical engineer, six years of AutoCAD at Hero MotoCorp, headline
+reads "Transitioning to Data Science".
+
+    hand label             non_engineering
+    signals_v1 (shipped)   non_engineering   correct
+    gemini-3.5-flash-lite  data_scientist    wrong  <- its ONLY error in 25
+    qwen2.5:3b-instruct    ml_engineer       wrong
+    gemma3:1b              data_engineer     wrong
+
+**Every language model tested fails on him, and for the strongest one it is the
+single thing it gets wrong.** All of them read the self-description; none
+weights six years of work history against one line of aspiration. The failure is
+not fixed by scale — 135M, 1B, 3B and a hosted frontier-lite model all make it —
+which is a much stronger claim than "rules are cheaper", and it is exactly what
+per-entry classification plus evidence tiering is built to prevent.
+
+**Method note, so the comparison is not overclaimed.** n=25, my own hand labels,
+one profile deep. This shows the failure exists and is consistent across model
+scales; it does not quantify how often it happens in a real corpus. That would
+need the recruiter-graded set in the "two more weeks" list.
+
+**Cost.** 40 minutes, and it cost me half my accuracy argument while producing
+the best evidence in the writeup.

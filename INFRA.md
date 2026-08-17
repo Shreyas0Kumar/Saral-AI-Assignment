@@ -26,23 +26,29 @@ one adapter class, which makes the swap small, but "small" is not "proven".
 
 ## What it costs at 1M profiles, re-scored weekly
 
-Measured: **2.2 ms/profile** single-threaded extraction (`run_manifest.json →
-derived.cost_per_1m_profiles`, mean of three runs, 2.11–2.37 ms). That figure
-includes cold start; warm steady-state p50 is 1.0 ms and p95 is 4.3 ms. Peak RSS
-for the process is ~154 MB, of which the extractor itself is a few MB.
+Measured: **1.46 ms/profile** single-threaded extraction (`run_manifest.json →
+derived.cost_per_1m_profiles`, mean of three runs on a quiesced machine:
+1.374, 1.479, 1.532 ms). That figure includes cold start; warm steady-state p50
+is 0.75 ms and p95 is 3.5 ms.
+
+The spread matters more than the point estimate. An earlier set of runs, taken
+while a local LLM was saturating the same 8 cores, reported 2.2–5.0 ms for the
+identical code. **Any per-profile number measured on a loaded desktop is a
+number about the desktop**, so all figures below come from an otherwise idle
+machine and the variance is stated rather than hidden behind a single decimal.
 
 ```
 Full pass over 1M profiles
-  1,000,000 × 2.2 ms           = 2,200 s        = 0.61 vCPU-hours
-  0.61 vCPU-h × $0.04656       = $0.0284
-  0.31 GB-h   × $0.00511       = $0.0016  (0.5 GB task)
+  1,000,000 × 1.46 ms          = 1,460 s        = 0.41 vCPU-hours
+  0.41 vCPU-h × $0.04656       = $0.0189
+  0.20 GB-h   × $0.00511       = $0.0010  (0.5 GB task)
                                  --------
-  per full pass                  $0.030
-  × 4.33 weekly passes/month   = $0.13 / month
+  per full pass                  $0.020
+  × 4.33 weekly passes/month   = $0.087 / month
 ```
 
 That number is small enough to be suspicious, so here is the sanity check: it is
-0.61 CPU-hours of pure Python string handling per million rows. The extractor
+0.41 CPU-hours of pure Python string handling per million rows. The extractor
 does regex normalisation, 2.8 title lookups per profile, and some date
 arithmetic. There is no model inference in it. The compute genuinely is nearly
 free; **the storage and the crawl are the real bill.**
@@ -77,13 +83,13 @@ Measured on the real feed: **7 of 25 candidates** changed materially, a 28%
 change rate. Applied to a weekly refresh of 1M profiles:
 
 ```
-full recompute weekly    0.61 vCPU-h/pass × 4.33 = 2.64 vCPU-h/month = $0.123
-incremental at 28%       0.17 vCPU-h/pass × 4.33 = 0.74 vCPU-h/month = $0.034
-saved                                                                  $0.09 / month
+full recompute weekly    0.41 vCPU-h/pass × 4.33 = 1.78 vCPU-h/month = $0.083
+incremental at 28%       0.11 vCPU-h/pass × 4.33 = 0.50 vCPU-h/month = $0.023
+saved                                                                  $0.06 / month
 ```
 
 **I am not going to pretend that is the argument.** At this scale the saving is
-nine cents. The incremental pass earns its keep somewhere else: 72% of
+six cents. The incremental pass earns its keep somewhere else: 72% of
 profiles never enter the re-score path, so the *downstream* work — re-ranking
 against every open job, re-embedding, invalidating caches, and firing recruiter
 notifications — is avoided for them too. The `materiality` classification is
@@ -102,51 +108,72 @@ path is a dictionary lookup, a regex, and — on the ~16% of titles the lexicon
 abstains on — one sparse matrix multiply.
 
 The comparison that matters is against the alternative design, an LLM call per
-profile. That was measured rather than assumed:
+profile. Four were measured rather than assumed, all with **schema-constrained
+output** so the model cannot fail on syntax and every error is a reasoning error.
+
+| arm | s/profile | valid JSON | role_family correct | cost model |
+|---|---|---|---|---|
+| **signals_v1 (shipped)** | **0.0015** | n/a | **25/25** | CPU-seconds |
+| gemini-3.5-flash-lite (hosted) | 1.25 | 25/25 | 24/25 (96%) | per token |
+| gemma3:1b (local, Ollama) | 2.68 | 25/25 | 17/25 (68%) | CPU-seconds |
+| qwen2.5:3b-instruct (local, Ollama) | 5.03 | 25/25 | 20/25 (80%) | CPU-seconds |
+| SmolLM2-135M (unconstrained harness) | 42.7 | 11/25 | 1/25 (4%) | CPU-seconds |
+
+**Self-hosted, priced in CPU-seconds:**
 
 ```
-llm_per_row, gemma3:1b via Ollama, CPU, schema-constrained, temperature 0
-  measured    2.68 s/profile, 243 prompt + 26 completion tokens, quantised
-  1M profiles 2,680,000 s = 744 vCPU-hours
-              744 × $0.04656                           = $34.66 per pass
-              × 4.33 weekly passes                     = $150 / month
-
-shipped extractor
-  1M profiles 0.61 vCPU-hours                          = $0.03 per pass
+gemma3:1b       1M × 2.68 s = 744 vCPU-h × $0.04656   = $35 / pass  = $150 / month
+qwen2.5:3b      1M × 5.03 s = 1,397 vCPU-h × $0.04656 = $65 / pass  = $282 / month
+signals_v1      1M × 0.0015 s = 0.41 vCPU-h           = $0.02 / pass = $0.09 / month
 ```
 
-**~1,220x the cost** (744 vCPU-hours against 0.61), and that is against the
-*small* model. The output is constrained by a JSON schema handed to Ollama's
-`format` parameter, so `role_family` is restricted to the 12-value enum at decode
-time — the model cannot fail on syntax, and 25 of 25 responses parse. Every
-error below is therefore a reasoning error, which is the only kind worth
-measuring.
+**~1,800x** for gemma3:1b, **~3,400x** for qwen2.5:3b, and both are *less*
+accurate.
 
-**What the accuracy actually is: 17 of 25 (68%)**, against the shipped
-extractor's 25 of 25 on my own read of the same profiles. Three specific failures
-matter more than the headline:
+**Hosted, priced in tokens** — a different cost model, so it is priced
+separately rather than folded into the same number:
 
-* **`non_engineering` is predicted 0 times out of 25.** The founder, the
-  mechanical engineer and the HR executive are all placed in engineering
-  families. SDB_10019 — six years of AutoCAD at Hero MotoCorp — is classified
-  `data_engineer`, which is the exact failure Appendix A of the brief describes.
-* **`seniority` is `"mid"` for 23 of 25.** The Atlassian engineering manager, the
-  Amazon SDE-3 and the three-month fresher are all "mid".
-* **`years_relevant` comes back in months for 22 of 25** — it copies
-  `duration_months` off the current role. The schema constrained the shape and
-  could not constrain the meaning.
+```
+measured    232.5 input + 32.9 output tokens per profile (mean over 25)
+1M profiles 232.5M input tokens + 32.9M output tokens
 
-That last one is the operationally important lesson: **structured output buys
-parseability, not correctness.** A downstream filter reading
-`years_relevant BETWEEN 5 AND 9` against this field would silently select the
-wrong candidates forever, and every value would pass validation.
+at $0.10 / M input and $0.40 / M output:
+            232.5 × $0.10  = $23.25
+             32.9 × $0.40  = $13.16
+                             ------
+            per full pass    $36.41   = $158 / month at weekly re-scoring
+```
 
-An earlier draft of this section reported 40.4 s/profile and 4% accuracy from a
-SmolLM2-135M run on a naive `transformers` loop with no output constraint. That
-number was wrong in my own favour — most of its "errors" were unparseable JSON,
-not wrong answers — and it is corrected here. Both runs are kept in
-`out/llm_cost_arm.json`; the difference between them is itself the finding. See
-`FAILURE_LOG.md` FL-009.
+The token counts are measured; **the rates are an assumption and should be
+substituted for current published pricing before anyone budgets on this.** Note
+that latency is irrelevant to a hosted bill — only prompt size is — which is why
+the fastest arm in the table is not the cheapest.
+
+**So the honest position on accuracy is not what I expected.** gemini-3.5-flash-lite
+gets 24 of 25 right. The accuracy argument against a hosted LLM is weak; the
+argument is cost (~1,800x), latency (1.25 s vs 1.5 ms, which rules it out of a
+synchronous query path), rate limits (this run hit HTTP 429 after 14 requests on
+the free tier and needed backoff — at 1M profiles quota is a capacity-planning
+input, not a footnote), and the dependency on a third party for a field that
+gates search.
+
+**But there is one result worth the whole exercise.** SDB_10019 is the profile
+Appendix A of the brief singles out: a mechanical engineer, six years of AutoCAD
+at Hero MotoCorp, whose headline says "Transitioning to Data Science".
+
+| system | SDB_10019 |
+|---|---|
+| hand label | `non_engineering` |
+| **signals_v1 (shipped)** | **`non_engineering`** |
+| gemini-3.5-flash-lite | `data_scientist` |
+| qwen2.5:3b-instruct | `ml_engineer` |
+| gemma3:1b | `data_engineer` |
+
+**Every language model tested puts him in a data role, and for Gemini it is the
+only mistake it makes in 25 profiles.** They are all reading the self-description
+and none of them is weighting the work history against it. That is precisely the
+failure the assignment describes, it is not fixed by scale, and it is what the
+per-entry classification plus evidence tiering exists to prevent.
 
 **When does the answer flip to GPU?** For this component, never — a GPU cannot
 accelerate a hash lookup. The question really applies to the `g4dn.xlarge`

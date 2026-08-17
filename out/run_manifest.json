@@ -1,6 +1,6 @@
 {
-  "run_id": "2026-08-17T17:55:56Z",
-  "git_sha": "8b2a543",
+  "run_id": "2026-08-17T19:42:16Z",
+  "git_sha": "e256326",
   "arm": "signals_v1_lexicon_lr",
   "versions": {
     "signals": "1.0.0",
@@ -28,9 +28,9 @@
     "extract": {
       "records_in": 50,
       "records_out": 50,
-      "wall_ms": 71.096,
+      "wall_ms": 71.591,
       "peak_rss_mb": 155.5,
-      "rss_delta_mb": 2.0,
+      "rss_delta_mb": 2.2,
       "counters": {
         "fallback_invocations": 0,
         "fallback_rate": 0.0,
@@ -42,15 +42,15 @@
     "score": {
       "records_in": 200,
       "records_out": 200,
-      "wall_ms": 23.828,
+      "wall_ms": 22.662,
       "peak_rss_mb": 156.0,
-      "rss_delta_mb": 1.4,
+      "rss_delta_mb": 1.5,
       "counters": {}
     },
     "baseline_embed": {
       "records_in": 25,
       "records_out": 25,
-      "wall_ms": 2.178,
+      "wall_ms": 2.303,
       "peak_rss_mb": 155.7,
       "rss_delta_mb": 0.2,
       "counters": {}
@@ -59,10 +59,10 @@
   "derived": {
     "cost_per_1m_profiles": {
       "stage": "extract",
-      "ms_per_record": 1.4219,
-      "cpu_hours_per_1m": 0.395,
+      "ms_per_record": 1.4318,
+      "cpu_hours_per_1m": 0.3977,
       "assumed_gb": 0.5,
-      "usd_per_1m": 0.0194,
+      "usd_per_1m": 0.0195,
       "rate_note": "fargate ap-south-1 on-demand $0.04656/vCPU-hr + $0.00511/GB-hr"
     }
   }

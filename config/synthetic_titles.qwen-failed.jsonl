@@ -1,0 +1,106 @@
+{"title": "SDE-1", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "SDE-2", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "SDE-3", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "MTS", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Associate Consultant", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Intern", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Intern", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Trainee", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Trainee", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Junior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Junior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Associate", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Associate", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Senior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Senior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Lead", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Lead", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Staff", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Staff", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Principal", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Principal", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Member of Technical Staff", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "MTS Intern", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "MTS Associate", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "MTS Senior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "MTS Principal", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Intern", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Intern", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Trainee", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Trainee", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Junior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Junior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Associate", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Associate", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Senior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Senior", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Lead", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Lead", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Staff", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Staff", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Engineer Principal", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Sr. Software Developer Principal", "role_family": "backend", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Associate Consultant", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Business Analyst", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Data Analyst", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Data Scientist", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Data Engineer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Junior Software Developer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer Intern", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer Intern", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Junior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Mid)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Senior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Junior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Mid)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Senior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Associate)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Associate)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Senior Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Senior Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Senior Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Senior Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Principal Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Principal Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Staff Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Staff Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Principal Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Principal Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Developer (Principal Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Software Engineer (Principal Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Member of Technical Staff", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Developer", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer Intern", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Developer Intern", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Junior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Mid)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Senior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Developer (Junior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Developer (Mid)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Developer (Senior)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Associate)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Senior Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Senior Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Principal Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Staff Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Principal Staff Staff)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}
+{"title": "Senior Software Engineer (Principal Principal Principal)", "role_family": "mobile", "source": "qwen2.5:3b-instruct@357c53fb659c5076de1"}

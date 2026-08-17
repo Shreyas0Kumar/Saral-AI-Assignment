@@ -35,6 +35,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from saral.contracts.taxonomy import RoleFamily  # noqa: E402
 from saral.adapters.llm.ollama_client import OllamaClient  # noqa: E402
+from saral.adapters.llm.gemini_client import GeminiClient  # noqa: E402
 
 OUT_RUN = ROOT / "out" / "llm_per_row_run.jsonl"
 OUT_REPORT = ROOT / "out" / "llm_cost_arm.json"
@@ -139,7 +140,10 @@ def _summarise(
         "model": model_id,
         "model_pinned": pinned,
         "backend": backend,
-        "schema_constrained": backend == "ollama",
+        # Both hosted and local arms constrain output; only the naive
+        # transformers harness does not. Getting this wrong mislabels the
+        # fairest arm in the table as the least fair one.
+        "schema_constrained": backend in ("ollama", "gemini"),
         "profiles_run": n,
         "threads": threads,
         "load_s": load_s,
@@ -163,10 +167,91 @@ def _summarise(
             "of": len(graded),
             "accuracy": round(correct / len(graded), 4) if graded else None,
         },
+        "cost_model": (
+            "per-token (hosted API)" if backend == "gemini"
+            else "per-CPU-second (self-hosted)"
+        ),
         "confusions_true_to_predicted": ["%s -> %s" % (t, pr) for t, pr in confusions],
         "llm_stats": llm_stats,
         "_rows": rows,
     }
+
+
+#: Gemini's `responseSchema` speaks an OpenAPI-flavoured dialect: uppercase type
+#: names, and it rejects keywords it does not know. Same constraint as the
+#: Ollama schema, different spelling.
+GEMINI_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "role_family": {"type": "STRING", "enum": FAMILIES},
+        "seniority": {
+            "type": "STRING",
+            "enum": ["intern", "junior", "mid", "senior", "staff+", "manager"],
+        },
+        "years_relevant": {"type": "NUMBER"},
+    },
+    "required": ["role_family", "seniority", "years_relevant"],
+}
+
+
+def run_gemini(model_id, profiles, cache_dir):
+    """The hosted arm: billed per token, not per CPU-second.
+
+    This is the alternative a bootstrapped startup would reach for first, so it
+    belongs in the comparison even though its cost model is not comparable to
+    the local arms without conversion. `cost_model` is recorded so INFRA.md can
+    price them separately rather than pretending one number covers both.
+    """
+    import psutil
+
+    client = GeminiClient(model=model_id, cache_dir=cache_dir)
+    if not client.available():
+        raise SystemExit(
+            "Gemini is not reachable. Set GOOGLE_API_KEY in the environment "
+            "(it is never read from a file or committed)."
+        )
+
+    process = psutil.Process()
+    peak_rss = process.memory_info().rss / 1e6
+    rows = []
+
+    for profile in profiles:
+        result = client.generate(build_prompt(profile), GEMINI_SCHEMA)
+        parsed = parse_reply(result.get("text", ""))
+        peak_rss = max(peak_rss, process.memory_info().rss / 1e6)
+        elapsed = result.get("wall_ms", 0) / 1000
+        rows.append(
+            {
+                "candidate_id": profile["id"],
+                "model": model_id,
+                "backend": "gemini",
+                "prompt_tokens": result.get("prompt_tokens", 0),
+                "completion_tokens": result.get("completion_tokens", 0),
+                "wall_s": round(elapsed, 3),
+                "raw": result.get("text", "")[:400],
+                "parsed": parsed,
+                "role_family": parsed.get("role_family"),
+                "valid_json": bool(parsed),
+                "valid_family": parsed.get("role_family") in FAMILIES,
+                "from_cache": result.get("from_cache", False),
+                "error": result.get("error"),
+            }
+        )
+        print(
+            "  %s: %6.2fs %4d tok -> %s"
+            % (
+                profile["id"],
+                elapsed,
+                result.get("completion_tokens", 0),
+                parsed.get("role_family") or result.get("error", "?")[:40],
+            )
+        )
+
+    summary = _summarise(
+        rows, model_id, "gemini", peak_rss, model_id, client.stats.to_dict()
+    )
+    summary["cost_model"] = "per-token (hosted API); wall time is latency, not billed compute"
+    return summary
 
 
 def run_ollama(model_id, profiles, cache_dir):
@@ -279,7 +364,9 @@ def run(model_id: str, profiles: list[dict], max_new_tokens: int, threads: int) 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--backend", choices=["ollama", "transformers"], default="ollama")
+    parser.add_argument(
+        "--backend", choices=["ollama", "gemini", "transformers"], default="ollama"
+    )
     parser.add_argument("--model", default="gemma3:1b")
     parser.add_argument("--limit", type=int, default=0, help="0 = all 25 profiles")
     parser.add_argument("--max-new-tokens", type=int, default=80)
@@ -296,9 +383,11 @@ def main() -> None:
         profiles = profiles[: args.limit]
 
     print(f"running {args.model} ({args.backend}) over {len(profiles)} profiles on CPU")
+    cache = ROOT / "out" / "llm_cache" if args.cache else None
     if args.backend == "ollama":
-        cache = ROOT / "out" / "llm_cache" if args.cache else None
         result = run_ollama(args.model, profiles, cache)
+    elif args.backend == "gemini":
+        result = run_gemini(args.model, profiles, cache)
     else:
         result = run(args.model, profiles, args.max_new_tokens, args.threads)
     rows = result.pop("_rows")

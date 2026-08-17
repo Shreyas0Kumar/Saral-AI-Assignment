@@ -17,6 +17,13 @@ from pathlib import Path
 
 from saral.pipeline import io
 
+#: Assumed hosted-API rates, USD per million tokens. The token *counts* in
+#: out/llm_cost_arm.json are measured; these rates are an assumption and are
+#: labelled as such wherever they are used. Substitute current published
+#: pricing before budgeting on them.
+USD_PER_M_INPUT = 0.10
+USD_PER_M_OUTPUT = 0.40
+
 
 def _load(name: str) -> dict:
     path = io.OUT_DIR / name
@@ -151,18 +158,40 @@ def render_dashboard() -> str:
         mean_s = payload.get("wall_s_per_profile", {}).get("mean")
         if not mean_s:
             continue
-        cpu_hours = mean_s * 1_000_000 / 3600
         accuracy = payload.get("role_family_accuracy_vs_hand_labels", {})
         constrained = payload.get("schema_constrained")
-        ratio = f"{cpu_hours / shipped_cost:,.0f}x" if shipped_cost else "-"
+        hosted = payload.get("backend") == "gemini"
         label = _esc(model.split("/")[-1])
+        if hosted:
+            label += " <span class='muted'>(hosted)</span>"
         if not constrained:
             label += " <span class='muted'>(unconstrained harness)</span>"
+
+        if hosted:
+            # Billed per token, not per CPU-second. Pricing a hosted arm in
+            # Fargate CPU-hours is a category error -- latency is latency, not
+            # compute you are charged for -- so the two are priced separately
+            # and the CPU-hours column is left blank rather than filled with a
+            # number that means nothing.
+            tokens = payload.get("tokens", {})
+            usd = (
+                tokens.get("prompt_mean", 0) * 1e6 / 1e6 * USD_PER_M_INPUT
+                + tokens.get("completion_mean", 0) * 1e6 / 1e6 * USD_PER_M_OUTPUT
+            )
+            cost_cell = f"~${usd:,.0f} <span class='muted'>tokens</span>"
+            hours_cell = "&mdash;"
+            ratio = f"{usd / 0.02:,.0f}x" if usd else "-"
+        else:
+            cpu_hours = mean_s * 1_000_000 / 3600
+            hours_cell = f"{cpu_hours:,.0f} h"
+            cost_cell = f"${cpu_hours * 0.04656:,.0f}"
+            ratio = f"{cpu_hours / shipped_cost:,.0f}x" if shipped_cost else "-"
+
         cost_rows.append(
             f"<tr><td>llm_per_row &middot; {label}</td>"
             f"<td class='num'>{mean_s * 1000:,.0f} ms</td>"
-            f"<td class='num'>{cpu_hours:,.0f} h</td>"
-            f"<td class='num'>${cpu_hours * 0.04656:,.0f}</td>"
+            f"<td class='num'>{hours_cell}</td>"
+            f"<td class='num'>{cost_cell}</td>"
             f"<td class='num neg'>{ratio}</td>"
             f"<td class='num'>{_esc(accuracy.get('correct'))}/{_esc(accuracy.get('of'))}</td></tr>"
         )
@@ -174,10 +203,16 @@ def render_dashboard() -> str:
             "<th>role_family correct</th></tr></thead>"
             f"<tbody>{''.join(cost_rows)}</tbody></table></div>"
             "<p class='muted'>Single-threaded on CPU, measured on this machine, priced at "
-            "$0.04656/vCPU-hour. The LLM arms are constrained by a JSON schema so "
+            "$0.04656/vCPU-hour; hosted arms are billed per token instead and are priced "
+            f"separately at an <em>assumed</em> ${USD_PER_M_INPUT}/M input and "
+            f"${USD_PER_M_OUTPUT}/M output &mdash; token counts are measured, those rates "
+            "are not. The LLM arms are constrained by a JSON schema so "
             "<code>role_family</code> cannot be malformed &mdash; every error is a reasoning "
-            "error. None of them ever predicts <code>non_engineering</code>, so the mechanical "
-            "engineer and the HR executive are scored as engineers. Arithmetic in INFRA.md."
+            "error. <strong>Every one of them misclassifies SDB_10019</strong> &mdash; the "
+            "mechanical engineer with six years of AutoCAD whose headline reads "
+            "&ldquo;Transitioning to Data Science&rdquo;, the profile the brief itself uses to "
+            "define the problem. The hosted model gets 24 of 25 right and that is the one it "
+            "gets wrong. Arithmetic in INFRA.md."
             "</p></section>"
         )
 

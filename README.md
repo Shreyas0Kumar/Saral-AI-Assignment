@@ -19,7 +19,7 @@ pip install -r requirements.txt
 pip install -e . --no-deps
 
 make all          # extract -> score -> evaluate -> delta, writes everything in out/
-make test         # 126 tests
+make test         # 130 tests
 ```
 
 Nothing above touches the network or loads a model. The two scripts that *do*
@@ -136,24 +136,37 @@ Latency, warmed up, 500 iterations:
 
 | batch | p50 | p95 |
 |---|---|---|
-| 1 profile | 1.0 ms | 4.3 ms |
-| 100 profiles | 181 ms | 211 ms |
+| 1 profile | 0.75 ms | 3.5 ms |
+| 100 profiles | 149 ms | 172 ms |
+
+Measured on an otherwise idle machine. Under load (a local LLM on the same
+cores) the identical code measures 2.2–5.0 ms, which is why every figure here
+states its conditions.
 
 Cost of one full pass over 1M profiles, derived from measured throughput:
 
-| arm | per profile | CPU-hours / 1M | Fargate ap-south-1 | role_family accuracy |
+Four LLM-per-row alternatives were measured, not assumed — all with
+schema-constrained output, so no model can fail on syntax and every error is a
+reasoning error:
+
+| arm | s/profile | valid JSON | role_family correct | cost / 1M |
 |---|---|---|---|---|
-| signals_v1 (shipped) | 2.2 ms | 0.61 | **$0.03** | 25/25 |
-| `llm_per_row`, gemma3:1b via Ollama, schema-constrained | 2,680 ms | 744 | **$34.66** | 17/25 |
+| **signals_v1 (shipped)** | **0.0015** | n/a | **25/25** | **$0.02** |
+| gemini-3.5-flash-lite (hosted) | 1.25 | 25/25 | 24/25 | ~$36 (per token) |
+| gemma3:1b (local) | 2.68 | 25/25 | 17/25 | $35 (744 CPU-h) |
+| qwen2.5:3b-instruct (local) | 5.03 | 25/25 | 20/25 | $65 (1,397 CPU-h) |
 
-**~1,220x the cost for 68% of the accuracy.** The LLM arm is given a JSON schema
-so it cannot fail on syntax — 25 of 25 responses parse — which makes every error
-a reasoning error. It predicts `non_engineering` **zero times in 25**, putting
-the mechanical engineer with six years of AutoCAD into `data_engineer`: the exact
-failure the brief's Appendix A describes. It also returns `years_relevant` in
-months for 22 of 25, because a schema constrains shape and not meaning.
+**The accuracy argument turned out weaker than I expected and the cost argument
+stronger.** Gemini gets 24 of 25 — so the case against a per-row LLM is 1,800x
+cost, 800x latency, free-tier rate limits (this run hit HTTP 429 after 14 calls),
+and a third-party dependency on the field that gates search.
 
-Working in `INFRA.md`.
+**The one result worth the whole exercise:** SDB_10019 — the mechanical engineer
+with six years of AutoCAD whose headline says "Transitioning to Data Science",
+the exact profile Appendix A singles out — is classified `data_scientist` by
+Gemini, `ml_engineer` by qwen, and `data_engineer` by gemma. **Every language
+model tested gets him wrong, and for Gemini it is its only error in 25.** The
+shipped extractor gets him right. Working in `INFRA.md`.
 
 ---
 
@@ -169,7 +182,7 @@ src/saral/
 config/        lexicon, aliases, adjacency, weights (YAML, hashed into the manifest)
                + committed LLM-derived artifacts
 scripts/       offline artifact generation. Never on the default path.
-tests/         126 tests
+tests/         130 tests
 ```
 
 `core/` imports no `sqlite3`, `requests`, `fastapi`, `torch`, `yaml` or `os`,
@@ -206,5 +219,5 @@ rather than a diff with a timestamp exclusion list.
 ## Files worth reading first
 
 1. `WRITEUP.md` -- what was built, what failed, where it fails silently, AI usage.
-2. `FAILURE_LOG.md` -- eight entries with the hypotheses that were abandoned.
+2. `FAILURE_LOG.md` -- eleven entries with the hypotheses that were abandoned.
 3. `INFRA.md` -- one page, AWS, with the arithmetic visible.

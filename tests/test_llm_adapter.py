@@ -65,3 +65,67 @@ def test_response_schema_pins_role_family_to_the_taxonomy():
     assert set(module.RESPONSE_SCHEMA["required"]) == {
         "role_family", "seniority", "years_relevant",
     }
+
+
+# --------------------------------------------------------------------------
+# Hosted arm (Gemini). Runs with no key and no network.
+# --------------------------------------------------------------------------
+def test_gemini_without_a_key_returns_an_error_not_an_exception(monkeypatch, tmp_path):
+    from saral.adapters.llm.gemini_client import GeminiClient
+
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    client = GeminiClient(cache_dir=tmp_path)
+    assert client.available() is False
+    result = client.generate("hello", None)
+    assert "GOOGLE_API_KEY" in result["error"]
+    assert result["text"] == ""
+
+
+def test_gemini_key_is_only_ever_read_from_the_environment(monkeypatch, tmp_path):
+    """The key must never be read from a file or persisted by the client."""
+    from saral.adapters.llm.gemini_client import GeminiClient
+
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key-not-real")
+    client = GeminiClient(cache_dir=tmp_path)
+    assert client.api_key == "test-key-not-real"
+    # Nothing the client writes may contain the key.
+    for path in tmp_path.rglob("*"):
+        if path.is_file():
+            assert "test-key-not-real" not in path.read_text(encoding="utf-8")
+
+
+def test_gemini_schema_pins_role_family_to_the_taxonomy():
+    """Gemini speaks an OpenAPI dialect; the constraint must survive translation."""
+    import importlib.util
+    import pathlib
+
+    from saral.contracts.taxonomy import RoleFamily
+
+    path = pathlib.Path(__file__).resolve().parents[1] / "scripts" / "run_llm_cost_arm.py"
+    spec = importlib.util.spec_from_file_location("cost_arm_g", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    schema = module.GEMINI_SCHEMA
+    assert schema["properties"]["role_family"]["enum"] == [f.value for f in RoleFamily]
+    assert schema["type"] == "OBJECT", "Gemini requires uppercase OpenAPI types"
+
+
+def test_no_shipped_module_imports_a_hosted_llm_client():
+    """The hot path must not acquire a network dependency by accident.
+
+    The Gemini and Ollama clients exist for offline measurement scripts only.
+    If anything under pipeline/, core/ or api/ starts importing them, the "zero
+    LLM calls on the hot path" claim quietly stops being true.
+    """
+    import pathlib
+
+    src = pathlib.Path(__file__).resolve().parents[1] / "src" / "saral"
+    watched = ["core", "pipeline", "api", "contracts", "telemetry"]
+    offenders = []
+    for package in watched:
+        for path in (src / package).rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            if "gemini_client" in text or "ollama_client" in text:
+                offenders.append(str(path.relative_to(src)))
+    assert not offenders, f"hosted/local LLM client imported on the served path: {offenders}"

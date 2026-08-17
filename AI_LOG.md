@@ -131,3 +131,27 @@ Each of those is the kind of error that survives code review and dies on
 contact with data. The division of labour that worked: the model wrote the
 structure, and every number in this repo was checked against the corpus by hand
 before it was written into a document.
+
+
+---
+
+## AI-007 | 2026-08-18 | Google AI Studio (Gemini) | measured, not used to build
+**Task.** Add a *hosted* per-row arm to the cost comparison, because a
+bootstrapped startup would reach for an API before self-hosting a model.
+**Model.** `gemini-3.5-flash-lite`, `temperature: 0`, output constrained with
+`responseSchema` so `role_family` is pinned to the 12-value taxonomy.
+**Result.** 24/25 role families correct at 1.25 s/profile, 25/25 valid JSON, and
+HTTP 429 after 14 consecutive calls on the free tier (handled with backoff and
+reported, since rate limits are a real capacity input at 1M profiles).
+
+**Note on what this was and was not used for.** Gemini was used to *measure an
+alternative*, never to build the shipped system. Nothing in `src/` calls it, and
+`make all` neither imports nor requires it. The key was passed through the
+`GOOGLE_API_KEY` environment variable, is not in the repository, and is not in
+any committed file.
+
+**The finding is in FL-011**, and it cost me half my accuracy argument: I had
+assumed a per-row LLM would be clearly less accurate, and against a good hosted
+model it is not. What survived is better evidence than what I lost — every model
+tested, from 135M to hosted frontier-lite, misclassifies SDB_10019, the profile
+the brief itself uses to define the problem.

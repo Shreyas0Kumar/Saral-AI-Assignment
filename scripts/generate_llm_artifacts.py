@@ -183,6 +183,37 @@ def main() -> None:
             seen.add(key)
             deduped.append(row)
 
+    # Refuse to overwrite a good artifact with a broken one.
+    #
+    # This guard exists because the script did exactly that. qwen2.5:3b returned
+    # no parseable array for 10 of the 12 families and the run cheerfully
+    # replaced a 528-title corpus covering all 12 families with a 106-title one
+    # covering 2. A taxonomy value with zero training examples does not degrade
+    # the distilled classifier -- it deletes a class from it, silently, because
+    # the artifact still loads and still predicts. A generation script that can
+    # destroy its own committed output on partial failure is worse than one that
+    # fails loudly. See FAILURE_LOG.md FL-010.
+    produced = {row["role_family"] for row in deduped}
+    missing = [f for f in families if f not in produced]
+    if missing:
+        raise SystemExit(
+            f"refusing to write: {len(missing)} of {len(families)} families produced no "
+            f"usable titles ({', '.join(missing)}).\n"
+            f"{CORPUS.relative_to(ROOT)} is unchanged.\n"
+            "Re-run with a larger model, or lower --per-family if the model is "
+            "truncating long arrays."
+        )
+    if CORPUS.exists():
+        existing = sum(
+            1 for line in CORPUS.read_text(encoding="utf-8").splitlines() if line.strip()
+        )
+        if existing and len(deduped) < existing * 0.7:
+            raise SystemExit(
+                f"refusing to write: {len(deduped)} titles is a sharp drop from the "
+                f"existing {existing}. {CORPUS.relative_to(ROOT)} is unchanged. "
+                "Delete it first if the shrink is intended."
+            )
+
     with CORPUS.open("w", encoding="utf-8", newline="\n") as handle:
         for row in deduped:
             handle.write(json.dumps(row, ensure_ascii=False) + "\n")

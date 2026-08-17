@@ -157,37 +157,67 @@ lexicon's own context vote — the architecture was already covering the case th
 fallback was hired for.
 
 **An LLM call per profile** (`llm_per_row`). Not rejected on principle;
-measured, on CPU, because CPU is what Fargate bills. **gemma3:1b via Ollama,
-constrained by a JSON schema** so `role_family` is restricted to the 12-value
-enum at decode time and the model cannot fail on syntax. 25 of 25 responses
-parse, which means every error is a reasoning error.
+measured four ways, all on **schema-constrained output** so no model can fail on
+syntax and every error is a reasoning error.
 
-Result: **2.68 s/profile — ~1,220x the cost of the shipped extractor — for
-17 of 25 (68%) role families correct** against 25 of 25.
+| arm | s/profile | valid JSON | role_family correct | cost / 1M |
+|---|---|---|---|---|
+| **signals_v1 (shipped)** | **0.0015** | n/a | **25/25** | **$0.02** |
+| gemini-3.5-flash-lite (hosted) | 1.25 | 25/25 | 24/25 | ~$36, per token |
+| gemma3:1b (local, Ollama) | 2.68 | 25/25 | 17/25 | $35, 744 CPU-h |
+| qwen2.5:3b-instruct (local, Ollama) | 5.03 | 25/25 | 20/25 | $65, 1,397 CPU-h |
 
-The three failure modes are more interesting than the headline:
+**This went differently from how I expected and I am reporting the version that
+is worse for my argument.** I assumed a per-row LLM would lose on accuracy.
+Against a decent hosted model it does not — Gemini gets 24 of 25. So "cheap
+*and* more accurate" collapses to "cheap", and the real case against a per-row
+LLM is: ~1,800x the cost, 1.25 s against 1.5 ms of latency (which alone rules it
+out of a synchronous query path), free-tier rate limits that returned HTTP 429
+after 14 consecutive calls and required backoff, and a third-party dependency on
+the one field that gates search.
 
-* it predicts `non_engineering` **zero times in 25**, placing the founder, the
-  mechanical engineer and the HR executive in engineering families. SDB_10019
-  lands in `data_engineer` — the exact failure Appendix A describes;
-* `seniority` is `"mid"` for 23 of 25, including the engineering manager and the
-  three-month fresher;
-* `years_relevant` is returned in **months** for 22 of 25, copied off
-  `duration_months`.
+**But the single best result in this submission came out of that comparison.**
+SDB_10019 is the profile Appendix A holds up as the canonical failure —
+mechanical engineer, six years of AutoCAD at Hero MotoCorp, headline reads
+"Transitioning to Data Science":
 
-That last one is the lesson I would take to production: **a schema buys
-parseability, not correctness.** A pre-filter reading `years_relevant BETWEEN 5
-AND 9` against this field would select the wrong candidates indefinitely and
-every value would pass validation.
+| system | verdict on SDB_10019 |
+|---|---|
+| hand label | `non_engineering` |
+| **signals_v1 (shipped)** | **`non_engineering`** |
+| gemini-3.5-flash-lite | `data_scientist` |
+| qwen2.5:3b-instruct | `ml_engineer` |
+| gemma3:1b | `data_engineer` |
 
-I got this wrong first (`FL-009`). My initial harness used SmolLM2-135M through
-a naive `transformers` loop with no output constraint, and reported 40.4
-s/profile and 4% accuracy — a number ~15x too slow and ~17x too harsh, because
-14 of its 25 "errors" were unparseable JSON rather than wrong answers. I had
-written that using a 7B model to prove LLMs are expensive would be sandbagging,
-and then sandbagged in the other direction by giving the small model a harness
-that could not succeed. The corrected number is much smaller and much harder to
-argue with.
+**Every language model tested gets him wrong, and for Gemini it is the only
+mistake it makes in 25 profiles.** All of them read the self-description; none
+weights six years of work history against one line of aspiration. The failure is
+not fixed by scale — 135M, 1B, 3B and a hosted frontier-lite model all make it.
+That is a far stronger claim than "rules are cheaper", and it is exactly what
+per-entry classification and evidence tiering exist to prevent. (Honest scope:
+n=25, my own labels, one profile deep. It shows the failure exists and survives
+scaling; it does not quantify its rate on a real corpus.)
+
+Two further things the LLM arms exposed:
+
+* **A schema constrains shape, not meaning.** Both local models returned
+  `years_relevant` in *months* for 22 of 25 — copied off `duration_months` —
+  and every value passed validation. A pre-filter reading
+  `years_relevant BETWEEN 5 AND 9` against that field would select the wrong
+  candidates forever with no error anywhere.
+* **Constrained decoding degrades with output length.** The same mechanism that
+  gave 25/25 valid objects in the cost arm produced no parseable array for 10 of
+  12 families when asked for 45 titles at once (`FL-010`).
+
+I also got the first version of this comparison wrong in my own favour
+(`FL-009`). My initial harness ran SmolLM2-135M through a naive `transformers`
+loop with no output constraint and reported 40.4 s/profile and 4% accuracy — 14
+of its 25 "errors" were unparseable JSON rather than wrong answers. I had
+written that using a large model to prove LLMs are expensive would be
+sandbagging, then sandbagged in the other direction by giving a small model a
+harness that could not succeed. That run is kept in `out/llm_cost_arm.json`
+labelled as unconstrained, because the gap between it and the fair test is the
+lesson.
 
 **Fitting `skill_noise_ratio` to Appendix A's worked example** (`FL-003`,
 `AI-002`). The plan I started from asserted the formula was "confirmed" by the
@@ -380,7 +410,7 @@ requiring overlap resolution (no overlap exists anywhere in the corpus —
 `AI-003`), and it predicted out-of-order timestamps in the delta feed that are
 not there (the duplicate-line trap is what is actually there — `FL-006`
 neighbours). In both cases the generated code was structurally sound and
-empirically untested; every one of the eight `FAILURE_LOG.md` entries comes from
+empirically untested; every one of the eleven `FAILURE_LOG.md` entries comes from
 running it against the data rather than from reading it.
 
 The last two are worth singling out because they were caught at the very end, by
