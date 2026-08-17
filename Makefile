@@ -7,7 +7,7 @@ PY ?= python
 PIP ?= $(PY) -m pip
 
 .PHONY: help install install-eval all extract score evaluate delta test serve \
-        docker-build docker-run clean regenerate-llm-artifacts lint
+        docker-build docker-run clean regenerate-llm-artifacts cost-arm
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -58,8 +58,11 @@ regenerate-llm-artifacts:  ## rebuild the synthetic corpus, distilled LR and cen
 	$(PY) scripts/train_distilled_lr.py
 	$(PY) scripts/compare_fallbacks.py
 
+# `--backend` must be stated: it defaults to ollama, and a HuggingFace repo id
+# is not an ollama tag. Without it this target exits on "ollama does not have
+# HuggingFaceTB/SmolLM2-135M-Instruct" before measuring anything.
 cost-arm:  ## measure a real LLM per row on CPU (slow, ~25 min)
-	$(PY) scripts/run_llm_cost_arm.py --model HuggingFaceTB/SmolLM2-135M-Instruct
+	$(PY) scripts/run_llm_cost_arm.py --backend transformers --model HuggingFaceTB/SmolLM2-135M-Instruct
 
 clean:
 	rm -rf out/saral.db out/*.npz .pytest_cache
