@@ -155,3 +155,30 @@ assumed a per-row LLM would be clearly less accurate, and against a good hosted
 model it is not. What survived is better evidence than what I lost — every model
 tested, from 135M to hosted frontier-lite, misclassifies SDB_10019, the profile
 the brief itself uses to define the problem.
+
+---
+
+## AI-008 | 2026-08-18 | Claude Code (dataviz guidance) | charts
+**Task.** Rebuild `/dashboard` so it shows the signal layer rather than a
+tautology.
+**How the tool was used.** A visualisation guide was loaded *before* writing any
+chart code, and its palette validator was run rather than reasoned about:
+categorical slots, the diverging pair and the ordinal ramps were each checked
+for contrast and colour-vision separation against both the light and the dark
+surface. Two design decisions came directly out of it and I would not have
+reached them unaided:
+
+* **Single-series bars get one hue.** Colouring eleven `role_family` bars
+  darker-where-bigger double-encodes bar length and spends the only free channel
+  on information the chart already shows.
+* **A 6-step ordinal ramp for seniority failed** the adjacent-lightness gate —
+  5 steps pass, 6 do not. So seniority bars are single-hue and the ordering
+  lives on the axis, which is where it belonged anyway.
+
+**What the tool did not catch, which is the point.** The validator passed while
+five real bugs were live on the page (FL-012): a literally-printed HTML entity, a
+wrong count, a legend for an encoding that did not exist, an unreadable dot
+cluster, and a severity ramp that made the least important class the most
+prominent mark. All five were found by rendering the page and looking at it. A
+checker that validates colour will report success on a chart that is wrong in
+every other respect.

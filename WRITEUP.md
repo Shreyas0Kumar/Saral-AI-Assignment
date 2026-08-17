@@ -1,5 +1,26 @@
 # WRITEUP.md
 
+> **The two-page version.** I built a structured signal layer: per-experience-entry
+> role classification with recency decay, evidence-tiered skills, and a fit scorer
+> where every point traces to a reason code. The hot path makes no LLM call and
+> runs in 1.5 ms/profile.
+>
+> It scores +0.092 NDCG@10 over a MiniLM cosine baseline, and **that improvement
+> is not distinguishable from noise** — the 95% interval contains zero and the
+> four per-job deltas disagree in sign. I would not defend it as real.
+>
+> The result I *would* defend: **every language model I tested — 135M, 1B, 3B and
+> a hosted frontier-lite — misclassifies SDB_10019**, the AutoCAD mechanical
+> engineer that Appendix A uses to define the problem. For the strongest model it
+> is its only error in 25. This system gets him right, for ~1,800x less money.
+>
+> Where it fails silently: terse profiles are punished by evidence tiering, and an
+> unaliased skill spelling is indistinguishable from an absent skill.
+>
+> The rest of this document is the detail behind those four paragraphs. The
+> hypothesis trails are in `FAILURE_LOG.md` (twelve entries); the cost arithmetic
+> is in `INFRA.md`.
+
 ## What I built
 
 A structured signal layer that reads a raw profile and emits a scoreable record,
@@ -57,22 +78,15 @@ p = 0.25, and with n = 4 the smallest p it could possibly return is 0.0625 — s
 that test cannot establish significance at any effect size, which is worth
 saying out loud rather than reporting as a near miss.
 
-Three further things about these numbers that I would rather point out than have
-found:
-
-* **NDCG@10 barely discriminates here.** Each job has 10–16 labelled
-  candidates, so a condensed @10 cut covers most of the list. MRR is 1.00 for
-  *both* systems — both put a relevant candidate first in all four jobs — so it
-  carries no information and is reported only to show that it is saturated.
-* **JD-004's Precision@5 cannot exceed 0.40 for any system**, because only 2 of
-  its 10 labelled candidates are graded ≥ 2. Averaging P@5 across jobs with
-  different ceilings without disclosing it is quietly misleading. Both systems
-  hit 0.40 on JD-004, i.e. both are already at ceiling.
-* **Both list conventions are reported.** Condensed (rank 25, keep the labelled
-  ones in order) is primary; zero-fill is alongside. Zero-fill punishes a system
-  for surfacing a good candidate the recruiter never graded, which is exactly
-  what this system is built to produce; condensed lists flatter everything
-  equally. The ranking does not flip between them.
+Three things I would rather point out than have found:
+**NDCG@10 barely discriminates** (10–16 labels per job means a condensed @10 cut
+covers most of the list, and MRR is 1.00 for *both* systems — saturated, reported
+only to show it); **JD-004's Precision@5 cannot exceed 0.40** for any system,
+since only 2 of its 10 labelled candidates are graded ≥ 2, and both systems are
+already at that ceiling; and **both list conventions are reported** — condensed
+as primary, zero-fill alongside — because zero-fill punishes a system for
+surfacing a good candidate the recruiter never graded, which is exactly what this
+system is built to do. The ranking does not flip between them.
 
 ### The ablation ladder, including the rung that did nothing
 
@@ -132,92 +146,65 @@ tuned after reading this**; the fixes are future work.
 
 ## What I tried and dropped
 
-**A MiniLM nearest-centroid fallback** (`FL-006`). Built, measured, cut. The
-important part is *how* it was cut. The distilled LR initially reported 100%
-accuracy on everything it answered over the hand-labelled held-out entries,
-which is a reason to look harder rather than to celebrate. Splitting the holdout
-by whether the title appears verbatim in the training corpus showed that the 32
-titles it answered were exactly the 32 it had seen, and that of the 10 novel
-titles it answered **zero**. Its measured generalisation is not high — it is
-undefined. I then checked whether the semantic fallback rescued that case, since
-generalisation is the entire argument for keeping MiniLM: it answers all 10
-novel titles and gets **0 of 10** right ("Software Engineer" → `ml_engineer`,
-"SDE II" → `devops_sre`, "Design Engineer" → `engineering_manager`).
+**A MiniLM nearest-centroid fallback** (`FL-006`). Built, measured, cut — and
+*how* it was cut is the point. The distilled LR first reported 100% accuracy on
+everything it answered, which is a reason to look harder rather than celebrate.
+Splitting the holdout by whether a title appears verbatim in the training corpus
+showed the 32 it answered were exactly the 32 it had seen; of the 10 novel titles
+it answered **zero**. Its generalisation is not high, it is undefined. MiniLM,
+built to fix precisely that, answers all 10 novel titles and gets **0 of 10**
+right. On the only population a fallback ever sees — the 5 titles where the
+lexicon genuinely abstains — the LR answers 0 and MiniLM answers 5 and gets 5
+wrong.
 
-Narrowed to the only population a fallback ever sees in production — the titles
-where the lexicon genuinely abstains, of which there are 5 — the LR answers 0
-and MiniLM answers 5 and gets 5 wrong.
-
-So the measured contribution of the fallback layer on this corpus is **zero**,
-and I report it as zero. The LR ships not because it classifies better but
-because it *abstains correctly*: it can only fill a gap, never override a
-decision the lexicon got right. That safety property is the only one that was
-actually measured. Those five ambiguous titles are resolved correctly by the
-lexicon's own context vote — the architecture was already covering the case the
-fallback was hired for.
+So the measured contribution of the fallback layer is **zero**, reported as zero.
+The LR ships not because it classifies better but because it *abstains
+correctly*: it can only fill a gap, never override a decision the lexicon got
+right. That safety property is the only one actually measured. Those five
+ambiguous titles are resolved correctly by the lexicon's own context vote — the
+architecture was already covering the case the fallback was hired for.
 
 **An LLM call per profile** (`llm_per_row`). Not rejected on principle;
-measured four ways, all on **schema-constrained output** so no model can fail on
-syntax and every error is a reasoning error.
+measured four ways on CPU, all schema-constrained so no model can fail on syntax
+and every error is a reasoning error. Full arithmetic in `INFRA.md`.
 
 | arm | s/profile | valid JSON | role_family correct | cost / 1M |
 |---|---|---|---|---|
 | **signals_v1 (shipped)** | **0.0015** | n/a | **25/25** | **$0.02** |
 | gemini-3.5-flash-lite (hosted) | 1.25 | 25/25 | 24/25 | ~$36, per token |
-| gemma3:1b (local, Ollama) | 2.68 | 25/25 | 17/25 | $35, 744 CPU-h |
-| qwen2.5:3b-instruct (local, Ollama) | 5.03 | 25/25 | 20/25 | $65, 1,397 CPU-h |
+| gemma3:1b (local) | 2.68 | 25/25 | 17/25 | $35, 744 CPU-h |
+| qwen2.5:3b-instruct (local) | 5.03 | 25/25 | 20/25 | $65, 1,397 CPU-h |
 
-**This went differently from how I expected and I am reporting the version that
-is worse for my argument.** I assumed a per-row LLM would lose on accuracy.
-Against a decent hosted model it does not — Gemini gets 24 of 25. So "cheap
-*and* more accurate" collapses to "cheap", and the real case against a per-row
-LLM is: ~1,800x the cost, 1.25 s against 1.5 ms of latency (which alone rules it
-out of a synchronous query path), free-tier rate limits that returned HTTP 429
-after 14 consecutive calls and required backoff, and a third-party dependency on
-the one field that gates search.
+**This went against my argument and I am reporting the version that hurts.** I
+assumed a per-row LLM would lose on accuracy. Against a good hosted model it does
+not — Gemini gets 24 of 25 — so "cheap *and* more accurate" collapses to "cheap".
+The real case is ~1,800x cost, 1.25 s against 1.5 ms (which alone rules it out of
+a synchronous query path), free-tier rate limits (HTTP 429 after 14 consecutive
+calls), and a third-party dependency on the field that gates search.
 
-**But the single best result in this submission came out of that comparison.**
-SDB_10019 is the profile Appendix A holds up as the canonical failure —
-mechanical engineer, six years of AutoCAD at Hero MotoCorp, headline reads
-"Transitioning to Data Science":
+**But the best result in this submission came out of that comparison.**
+SDB_10019 — the mechanical engineer, six years of AutoCAD, headline "Transitioning
+to Data Science", the profile Appendix A uses to define the problem — is
+classified `data_scientist` by Gemini, `ml_engineer` by qwen and `data_engineer`
+by gemma. **Every language model tested gets him wrong, and for Gemini it is its
+only error in 25.** All of them read the self-description; none weighs six years
+of work history against one line of aspiration. Not fixed by scale: 135M, 1B, 3B
+and a hosted model all make it. That is what per-entry classification and
+evidence tiering exist to prevent. (Scope: n=25, my own labels. It shows the
+failure exists and survives scaling; it does not quantify its rate.)
 
-| system | verdict on SDB_10019 |
-|---|---|
-| hand label | `non_engineering` |
-| **signals_v1 (shipped)** | **`non_engineering`** |
-| gemini-3.5-flash-lite | `data_scientist` |
-| qwen2.5:3b-instruct | `ml_engineer` |
-| gemma3:1b | `data_engineer` |
+Two further things the LLM arms exposed. **A schema constrains shape, not
+meaning** — both local models returned `years_relevant` in *months* for 22 of 25,
+copied off `duration_months`, and every value passed validation. And
+**constrained decoding degrades with output length**: the mechanism that gave
+25/25 valid objects produced no parseable array for 10 of 12 families when asked
+for 45 titles at once (`FL-010`).
 
-**Every language model tested gets him wrong, and for Gemini it is the only
-mistake it makes in 25 profiles.** All of them read the self-description; none
-weights six years of work history against one line of aspiration. The failure is
-not fixed by scale — 135M, 1B, 3B and a hosted frontier-lite model all make it.
-That is a far stronger claim than "rules are cheaper", and it is exactly what
-per-entry classification and evidence tiering exist to prevent. (Honest scope:
-n=25, my own labels, one profile deep. It shows the failure exists and survives
-scaling; it does not quantify its rate on a real corpus.)
-
-Two further things the LLM arms exposed:
-
-* **A schema constrains shape, not meaning.** Both local models returned
-  `years_relevant` in *months* for 22 of 25 — copied off `duration_months` —
-  and every value passed validation. A pre-filter reading
-  `years_relevant BETWEEN 5 AND 9` against that field would select the wrong
-  candidates forever with no error anywhere.
-* **Constrained decoding degrades with output length.** The same mechanism that
-  gave 25/25 valid objects in the cost arm produced no parseable array for 10 of
-  12 families when asked for 45 titles at once (`FL-010`).
-
-I also got the first version of this comparison wrong in my own favour
-(`FL-009`). My initial harness ran SmolLM2-135M through a naive `transformers`
-loop with no output constraint and reported 40.4 s/profile and 4% accuracy — 14
-of its 25 "errors" were unparseable JSON rather than wrong answers. I had
-written that using a large model to prove LLMs are expensive would be
-sandbagging, then sandbagged in the other direction by giving a small model a
-harness that could not succeed. That run is kept in `out/llm_cost_arm.json`
-labelled as unconstrained, because the gap between it and the fair test is the
-lesson.
+I got the first version of this comparison wrong in my own favour (`FL-009`): a
+naive harness with no output constraint reported 40.4 s/profile and 4% accuracy,
+where 14 of the 25 "errors" were unparseable JSON rather than wrong answers. I
+had called using a large model to prove LLMs expensive "sandbagging", then
+sandbagged in the other direction.
 
 **Fitting `skill_noise_ratio` to Appendix A's worked example** (`FL-003`,
 `AI-002`). The plan I started from asserted the formula was "confirmed" by the
@@ -270,6 +257,31 @@ the null-field path emitted `suspected_deletion` but never advanced
 `observed_at`, so every re-run re-emitted it. It now advances the timestamp
 while leaving the hash alone — we did observe the field, we chose not to apply
 what we saw — which is also the state a corroboration policy would need.
+
+## The dashboard
+
+`GET /dashboard` renders seven panels from `out/`, served by the same FastAPI
+process — inline SVG, no chart library, no CDN, renders offline. It exists to
+make the explainability claim concrete: the last panel is a per-job ranked list
+where every score decomposes into components and every component leaves a reason
+code.
+
+One editorial rule shaped it (`FL-012`): **a number only earns a panel if it
+could have come out differently.** The original hero was "LLM calls on the hot
+path: 0", which is not a measurement but the architecture restated — no code
+path could have made it read otherwise. It was cut for the SDB_10019
+head-to-head. The same audit found the page had metrics about the *ranking* and
+nothing about the **signal layer** — the thing the brief calls the deliverable —
+so role_family, seniority, confidence and the evidenced-versus-claimed skill
+split are now the second panel. Those distributions double as the monitoring
+surface `INFRA.md` alarms on.
+
+Rendering the page and looking at it then found five bugs no validator caught —
+a literally-printed HTML entity, a wrong count, a legend for an encoding that did
+not exist, an unreadable dot cluster, and a severity ramp that made the least
+important class the most prominent mark. The colour palette validator passed
+while all five were live. Automated checks and looking at the output are not
+substitutes for each other.
 
 ## Where it fails silently
 
@@ -410,7 +422,7 @@ requiring overlap resolution (no overlap exists anywhere in the corpus —
 `AI-003`), and it predicted out-of-order timestamps in the delta feed that are
 not there (the duplicate-line trap is what is actually there — `FL-006`
 neighbours). In both cases the generated code was structurally sound and
-empirically untested; every one of the eleven `FAILURE_LOG.md` entries comes from
+empirically untested; every one of the twelve `FAILURE_LOG.md` entries comes from
 running it against the data rather than from reading it.
 
 The last two are worth singling out because they were caught at the very end, by

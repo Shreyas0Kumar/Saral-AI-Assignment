@@ -232,5 +232,5 @@ rather than a diff with a timestamp exclusion list.
 ## Files worth reading first
 
 1. `WRITEUP.md` -- what was built, what failed, where it fails silently, AI usage.
-2. `FAILURE_LOG.md` -- eleven entries with the hypotheses that were abandoned.
+2. `FAILURE_LOG.md` -- twelve entries with the hypotheses that were abandoned.
 3. `INFRA.md` -- one page, AWS, with the arithmetic visible.

@@ -471,3 +471,48 @@ need the recruiter-graded set in the "two more weeks" list.
 
 **Cost.** 40 minutes, and it cost me half my accuracy argument while producing
 the best evidence in the writeup.
+
+---
+
+## FL-012 | 2026-08-18 | phase 9 | dashboard -> WRITEUP
+**Symptom.** The dashboard's hero number was "LLM calls on the hot path: **0**".
+Reviewing the page with fresh eyes, that number cannot be wrong. It is not a
+measurement, it is the architecture restated: there is no code path that could
+have made it read anything else.
+
+**Resolution, and the rule it produced.** *A number only earns a panel if it
+could have come out differently.* The zero was cut. What replaced it is the one
+comparison on this project that genuinely could have gone either way and didn't:
+every language model tested misclassifies SDB_10019.
+
+The same audit found the page was missing the thing the assignment calls the
+deliverable. There were metrics about the ranking and nothing at all about the
+**signal layer** — no role_family distribution, no seniority spread, no
+confidence, no evidenced-versus-claimed skill split. The panel that was hardest
+to justify was in; the panel that *is* the product was absent.
+
+**Then I rendered it and looked at it, which found five more.** None of these
+were visible in the code:
+
+1. `&mdash;` was passed through `html.escape` and printed literally on the page.
+2. "touched **7** candidates" was printing the *recomputed* count; the feed
+   touched **9**. It understated the work the delta engine avoids.
+3. A colour legend sat above a table that used no colour — a legend promising an
+   encoding that was not there. Replaced with a real grouped bar chart.
+4. The confidence strip packed 25 dots into 4 fixed lanes; the corpus clusters
+   hard above 0.85, so it rendered as an unreadable blob at exactly the point
+   the reader most wants to count. Lanes are now allocated on demand.
+5. The materiality bar gave `noise` the lightest step of the ordinal ramp, which
+   on a dark surface made the *least* important class the most eye-catching mark
+   on the chart. `noise` is now neutral grey — it means "no action", so it is
+   not a severity step at all — and the ramp direction is set per mode.
+
+**The pattern, which is the same one as FL-007 and FL-008.** Every bug in this
+entry was found by *looking at the artifact*, not by reading the code that
+produced it. The palette was validated by a script (contrast and colour-vision
+separation in both modes, rather than eyeballed) and the script passed while all
+five of these were live — because they are layout, semantics and copy, which no
+validator checks. Automated checks and looking at the output are not substitutes
+for each other.
+
+**Cost.** 70 minutes, most of it in the three rounds of render-and-look.
