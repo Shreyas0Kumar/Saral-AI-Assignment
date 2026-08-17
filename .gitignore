@@ -3,6 +3,11 @@ DECISIONS.md
 build_plan.md
 brief.txt
 
+# Local editor / tool state.
+.claude/settings.local.json
+.idea/
+.vscode/
+
 __pycache__/
 *.py[cod]
 *.egg-info/

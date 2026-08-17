@@ -17,7 +17,7 @@ Notes on what is deliberately *not* here:
 from __future__ import annotations
 
 import time
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 from saral.adapters.store.sqlite_repo import SqliteRepo
 from saral.config_loader import load_all
-from saral.contracts.models import JobSpec, RankingRecord, RawProfile, SignalRecord
+from saral.contracts.models import JobSpec, RankingRecord, SignalRecord
 from saral.contracts.versions import SCORING_VERSION, SIGNALS_VERSION
 from saral.core.extract.pipeline import extract
 from saral.core.score.features import parse_job

@@ -24,7 +24,6 @@ import re
 from dataclasses import dataclass, field
 
 from saral.contracts.models import RankingRecord, SignalRecord
-from saral.contracts.taxonomy import RoleFamily
 from saral.core.extract.years import years_relevant
 from saral.core.normalize import norm_text
 from saral.core.score.features import ParsedJob, Requirement

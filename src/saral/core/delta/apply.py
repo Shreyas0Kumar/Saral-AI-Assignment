@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from saral.contracts.models import ChangeEvent
-from saral.core.delta.dependency import DEPENDS, affected_signals, requires_recompute
+from saral.core.delta.dependency import DEPENDS, affected_signals
 from saral.core.delta.materiality import (
     classify,
     deletion_event,

@@ -9,7 +9,6 @@ because it is least important -- it is last because it is the conclusion.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from saral.contracts.versions import SCORING_VERSION, SIGNALS_VERSION
 from saral.core.score.scorer import ScoringFlags

@@ -96,7 +96,6 @@ def test_health_reports_versions_and_config_hashes(client):
 
 def test_health_is_not_unconditionally_ok(monkeypatch, client):
     """The check must actually fail when the store is broken."""
-    from saral.adapters.store import sqlite_repo
 
     class BrokenRepo:
         def health(self):

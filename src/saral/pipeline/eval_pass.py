@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from pathlib import Path
 
 from saral.contracts.models import JobSpec, SignalRecord
 from saral.core.evaluation.bootstrap import bootstrap_delta, paired_permutation, verdict

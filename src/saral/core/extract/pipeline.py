@@ -11,14 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from saral.contracts.models import RawProfile, SignalRecord, TenureStability
-from saral.contracts.taxonomy import RoleFamily, Seniority
+from saral.contracts.models import RawProfile, SignalRecord
+from saral.contracts.taxonomy import RoleFamily
 from saral.contracts.versions import SIGNALS_VERSION
 from saral.core.dates import Span, age_months, deoverlap_months, resolve_span
 from saral.core.extract.confidence import compute_confidence, noise_penalty_scale
 from saral.core.extract.role_family import (
     EntryClassification,
-    decay,
     family_scores,
     resolve_family,
 )

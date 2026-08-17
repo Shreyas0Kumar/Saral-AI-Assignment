@@ -16,7 +16,6 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from saral.config_loader import load_all
-from saral.core.score.scorer import ScoringFlags
 from saral.pipeline import io
 from saral.pipeline.arms import ARMS, SHIPPED_ARM
 from saral.pipeline.extract_pass import run_extract, write_signals
@@ -64,7 +63,7 @@ def cmd_evaluate(args) -> int:
 
     payload = run_full_evaluation(skip_baseline=args.skip_baseline)
     io.write_json(io.OUT_DIR / "metrics.json", payload)
-    print(f"evaluate: -> out/metrics.json")
+    print("evaluate: -> out/metrics.json")
     print(f"  verdict: {payload['uncertainty']['verdict'][:160]}...")
     return 0
 
