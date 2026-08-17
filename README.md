@@ -147,10 +147,14 @@ the number I would most want discussed.
 
 Latency, warmed up, 500 iterations:
 
-| batch | p50 | p95 |
-|---|---|---|
-| 1 profile | 0.75 ms | 3.5 ms |
-| 100 profiles | 149 ms | 172 ms |
+| batch | p50 | p95 | iterations |
+|---|---|---|---|
+| 1 profile | 0.699 ms | 3.363 ms | 500 |
+| 100 profiles | 108.174 ms | 140.589 ms | 30 |
+
+Every figure here is `out/metrics.json → latency_ms.extract`, quoted rather than
+rounded, so the table and the artifact can be diffed. The 1.0 ms per profile at
+the top of this README is the batch-100 p50 amortised (108.174 / 100).
 
 Measured on an otherwise idle machine. Under load (a local LLM on the same
 cores) the identical code measures 2.2–5.0 ms, which is why every figure here

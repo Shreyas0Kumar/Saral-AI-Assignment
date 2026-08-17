@@ -29,7 +29,7 @@ one adapter class, which makes the swap small, but "small" is not "proven".
 Measured: **1.46 ms/profile** single-threaded extraction (`run_manifest.json →
 derived.cost_per_1m_profiles`, mean of three runs on a quiesced machine:
 1.374, 1.479, 1.532 ms). That figure includes cold start; warm steady-state p50
-is 0.75 ms and p95 is 3.5 ms.
+is 0.699 ms and p95 is 3.363 ms (`metrics.json → latency_ms.extract.batch_1`).
 
 The spread matters more than the point estimate. An earlier set of runs, taken
 while a local LLM was saturating the same 8 cores, reported 2.2–5.0 ms for the
