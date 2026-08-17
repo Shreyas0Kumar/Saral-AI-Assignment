@@ -1,0 +1,40 @@
+# Role-family adjacency, used in two places:
+#   1. `years_relevant`: months in an adjacent family are credited fractionally.
+#   2. `role_match`: the 30-point scoring component.
+#
+# These are priors set from domain reasoning and frozen before any metric was
+# computed. They were NOT tuned against labels -- see DECISIONS.md D7. With 55
+# labels, a tuned adjacency value is a number fitted to noise.
+#
+# `engineering_manager` deliberately has no static row. An EM's adjacency to a
+# target family is `em_prior_ic` if that family appears in their own work
+# history, and `default` otherwise: an EM who spent eight years in ML is a
+# plausible ML hire, an EM who came up through frontend is not. Resolved at
+# runtime in contracts/taxonomy.py:Adjacency.score.
+
+version: "1.0.0"
+
+identity: 1.0
+default: 0.0
+em_prior_ic: 0.50
+
+pairs:
+  ml_engineer|data_scientist: 0.70
+  ml_engineer|data_engineer: 0.40
+  ml_engineer|backend: 0.30
+  data_scientist|data_analyst: 0.50
+  data_scientist|data_engineer: 0.35
+  data_engineer|data_analyst: 0.40
+  data_engineer|backend: 0.35
+  data_engineer|devops_sre: 0.30
+  backend|fullstack: 0.70
+  frontend|fullstack: 0.70
+  backend|frontend: 0.20
+  backend|devops_sre: 0.40
+  backend|mobile: 0.20
+  mobile|frontend: 0.35
+  mobile|fullstack: 0.30
+  devops_sre|qa: 0.20
+  qa|backend: 0.20
+  qa|frontend: 0.20
+  data_analyst|non_engineering: 0.15

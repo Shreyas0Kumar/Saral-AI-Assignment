@@ -1,0 +1,97 @@
+[
+  {
+    "job_id": "JD-001",
+    "title": "Senior Backend Engineer",
+    "company": "SARAL (client: fintech, Series B)",
+    "location": "Bengaluru (hybrid)",
+    "min_years": 5,
+    "max_years": 9,
+    "budget_lpa": [
+      35,
+      50
+    ],
+    "must_have": [
+      "Python",
+      "FastAPI or Django",
+      "PostgreSQL",
+      "production ownership of a high-traffic service"
+    ],
+    "good_to_have": [
+      "Kafka",
+      "AWS",
+      "Kubernetes"
+    ],
+    "raw_query": "senior backend engineer python fastapi postgres bangalore 5-9 years, must have owned a service in production at scale, fintech background preferred"
+  },
+  {
+    "job_id": "JD-002",
+    "title": "ML Engineer — Search & Ranking",
+    "company": "SARAL (client: marketplace)",
+    "location": "Bengaluru (hybrid)",
+    "min_years": 3,
+    "max_years": 7,
+    "budget_lpa": [
+      30,
+      45
+    ],
+    "must_have": [
+      "Python",
+      "PyTorch or TensorFlow",
+      "embeddings / retrieval / ranking",
+      "offline eval (NDCG, recall@k)"
+    ],
+    "good_to_have": [
+      "vector DB (FAISS/pgvector)",
+      "inference latency optimisation",
+      "MLOps"
+    ],
+    "raw_query": "ml engineer for search relevance, embeddings and reranking, must have shipped a ranking model to prod and measured NDCG, 3-7 yrs"
+  },
+  {
+    "job_id": "JD-003",
+    "title": "Data Engineer",
+    "company": "SARAL (client: D2C retail)",
+    "location": "Remote (India)",
+    "min_years": 2,
+    "max_years": 6,
+    "budget_lpa": [
+      18,
+      30
+    ],
+    "must_have": [
+      "SQL",
+      "Python",
+      "Airflow or equivalent orchestrator",
+      "batch pipeline ownership"
+    ],
+    "good_to_have": [
+      "Spark",
+      "dbt",
+      "cloud warehouse (Snowflake/BigQuery/Redshift)"
+    ],
+    "raw_query": "data engineer, airflow + spark or dbt, needs to own daily batch pipelines, remote ok, 2-6 years"
+  },
+  {
+    "job_id": "JD-004",
+    "title": "Frontend Engineer",
+    "company": "SARAL (client: SaaS)",
+    "location": "Mumbai (on-site)",
+    "min_years": 2,
+    "max_years": 5,
+    "budget_lpa": [
+      15,
+      26
+    ],
+    "must_have": [
+      "React",
+      "TypeScript",
+      "shipped a customer-facing UI"
+    ],
+    "good_to_have": [
+      "Next.js",
+      "performance work",
+      "design system experience"
+    ],
+    "raw_query": "frontend engineer react typescript, 2-5 yrs, mumbai onsite, someone who has actually shipped and cares about perf"
+  }
+]

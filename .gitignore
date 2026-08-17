@@ -1,0 +1,19 @@
+# Interview-defence notes, not part of the submission.
+DECISIONS.md
+build_plan.md
+brief.txt
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Runtime state. Rebuilt by `make all`; the committed artefacts live in config/.
+*.db
+*.sqlite3
+out/run_manifest*.json
+.coverage

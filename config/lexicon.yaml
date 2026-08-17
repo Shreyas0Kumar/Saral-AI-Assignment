@@ -1,0 +1,303 @@
+# Deterministic title -> role_family lexicon.
+#
+# Matching is token-boundary aware and longest-match-wins over the *normalised*
+# title core (see core/normalize.py:norm_title). An exact whole-title match
+# scores 1.0; a longest-substring match scores 0.9; a single-token match scores
+# 0.8. Anything else abstains and hands the title to the fallback classifier.
+#
+# The `ambiguous` list is the important part. A bare "engineer", "developer",
+# "consultant", "sde" or "member of technical staff" carries no family
+# information on its own -- in the Indian market these titles span every family
+# in the taxonomy. Guessing on them is how a mechanical Design Engineer with
+# AutoCAD ends up classified into a data role. They are routed through `context`
+# (the entry's description plus skills_used) instead, and abstain if the context
+# is empty too.
+
+version: "1.0.0"
+
+patterns:
+  backend:
+    - backend engineer
+    - backend developer
+    - back end engineer
+    - back-end developer
+    - server side engineer
+    - api engineer
+    - java developer
+    - python developer
+    - golang developer
+    - node developer
+    - node.js developer
+    - django developer
+    - rails developer
+    - php developer
+    - .net developer
+    - dotnet developer
+    - microservices engineer
+    - platform engineer backend
+
+  frontend:
+    - frontend engineer
+    - frontend developer
+    - front end engineer
+    - front-end developer
+    - ui developer
+    - ui engineer
+    - react developer
+    - angular developer
+    - vue developer
+    - javascript developer
+    - web developer
+    - ux engineer
+
+  fullstack:
+    - full stack developer
+    - full stack engineer
+    - fullstack developer
+    - fullstack engineer
+    - mern developer
+    - mean stack developer
+    - mern stack developer
+
+  mobile:
+    - android developer
+    - ios developer
+    - mobile developer
+    - mobile engineer
+    - android engineer
+    - ios engineer
+    - react native developer
+    - flutter developer
+
+  ml_engineer:
+    - machine learning engineer
+    - ml engineer
+    - mle
+    - applied scientist
+    - applied ml engineer
+    - ai engineer
+    - artificial intelligence engineer
+    - deep learning engineer
+    - computer vision engineer
+    - nlp engineer
+    - research engineer machine learning
+    - mlops engineer
+    - machine learning intern
+    - computer vision intern
+    - ml intern
+
+  data_engineer:
+    - data engineer
+    - big data engineer
+    - etl developer
+    - etl engineer
+    - analytics engineer
+    - data platform engineer
+    - data infrastructure engineer
+    - hadoop developer
+    - spark developer
+    - data warehouse engineer
+    - bi developer
+
+  data_analyst:
+    - data analyst
+    - business analyst
+    - product analyst
+    - business intelligence analyst
+    - bi analyst
+    - reporting analyst
+    - insights analyst
+    - marketing analyst
+    - operations analyst
+    - mis executive
+
+  data_scientist:
+    - data scientist
+    - decision scientist
+    - quantitative analyst
+    - statistician
+    - data science intern
+    - research scientist
+
+  devops_sre:
+    - devops engineer
+    - site reliability engineer
+    - sre
+    - platform engineer
+    - infrastructure engineer
+    - cloud engineer
+    - systems engineer
+    - build and release engineer
+    - kubernetes engineer
+    - cloud architect
+
+  qa:
+    - qa engineer
+    - qa automation engineer
+    - quality assurance engineer
+    - test engineer
+    - automation test engineer
+    - sdet
+    - software development engineer in test
+    - manual tester
+    - qa analyst
+
+  engineering_manager:
+    - engineering manager
+    - engineering director
+    - director of engineering
+    - head of engineering
+    - vp engineering
+    - vice president engineering
+    - senior engineering manager
+    - technical program manager engineering
+    - cto
+
+  non_engineering:
+    - hr executive
+    - hr manager
+    - human resources
+    - talent acquisition
+    - recruiter
+    - technical recruiter
+    - program manager
+    - project manager
+    - product manager
+    - founder
+    - co-founder
+    - ceo
+    - coo
+    - chief executive officer
+    - sales executive
+    - account manager
+    - marketing manager
+    - content writer
+    - graphic designer
+    - ui ux designer
+    - customer success manager
+    - operations manager
+    - mechanical engineer
+    - civil engineer
+    - electrical engineer
+    - production engineer
+    - quality engineer manufacturing
+    - teacher
+    - lecturer
+    - accountant
+
+# Titles that carry no family information without context.
+ambiguous:
+  - engineer
+  - developer
+  - programmer
+  - software engineer
+  - software developer
+  - software development engineer
+  - sde
+  - senior software engineer
+  - member of technical staff
+  - mts
+  - associate engineer
+  - associate software engineer
+  - graduate engineer trainee
+  - technical consultant
+  - consultant
+  - associate consultant
+  - technology analyst
+  - systems analyst
+  - programmer analyst
+  - technical architect
+  - solution architect
+  - architect
+  - staff engineer
+  - principal engineer
+  - lead engineer
+  - technical lead
+  - design engineer
+  - research assistant
+  - research associate
+  - software intern
+  - intern
+  - trainee
+  - analyst
+  - specialist
+
+# Context evidence: a term seen in the entry description or skills_used votes
+# for a family. Weights are summed and the argmax wins if it clears
+# `context_min_margin`.
+context_min_score: 1.0
+context_min_margin: 0.5
+
+context:
+  backend:
+    {django: 2.0, fastapi: 2.0, flask: 1.5, spring boot: 2.0, spring: 1.0,
+     hibernate: 1.5, microservices: 1.5, rest api: 1.0, rest apis: 1.0,
+     grpc: 1.0, celery: 1.5, postgresql: 1.0, mysql: 1.0, mongodb: 1.0,
+     redis: 1.0, kafka: 1.0, node.js: 1.5, express.js: 1.5, ledger: 1.5,
+     payments: 1.0, billing: 1.0, serverless: 1.5, lambda: 1.0,
+     aws lambda: 1.5, dynamodb: 1.5, sqs: 1.0, api gateway: 1.0, boto3: 1.5,
+     step functions: 1.5, java: 1.0, golang: 1.0, php: 1.0, wallet: 1.5,
+     refunds: 1.0, rps: 1.0, qps: 1.0}
+  frontend:
+    {react: 2.0, angular: 2.0, vue: 2.0, next.js: 2.0, redux: 1.5,
+     tailwind css: 1.5, webpack: 1.5, jest: 1.0, css: 1.5, html: 1.0,
+     typescript: 1.0, accessibility: 1.5, lcp: 1.5, onboarding flow: 1.0,
+     graphql: 0.5, storybook: 1.5, design system: 1.5}
+  fullstack:
+    {mern: 2.0, mean stack: 2.0, full stack: 2.0, fullstack: 2.0}
+  mobile:
+    {android: 2.0, ios: 2.0, kotlin: 1.5, swift: 1.5, flutter: 2.0,
+     react native: 2.0, jetpack compose: 2.0}
+  ml_engineer:
+    {pytorch: 2.0, tensorflow: 2.0, transformers: 1.5, huggingface: 1.5,
+     hugging face: 1.5, langchain: 1.5, rag: 1.5, embeddings: 1.5,
+     reranker: 2.0, cross-encoder: 2.0, ndcg: 1.5, faiss: 1.5,
+     triton inference server: 2.0, onnx: 1.5, tensorrt: 2.0,
+     quantization: 1.5, quantized: 1.5, opencv: 2.0, jetson: 1.5,
+     recommender: 1.5, ranking: 1.0, perception: 1.5, fine-tuned: 1.5,
+     detector: 1.5, feature store: 1.5, llm: 1.5, mlflow: 1.0}
+  data_engineer:
+    {airflow: 2.0, dag: 1.5, dags: 1.5, spark: 2.0, pyspark: 2.0,
+     databricks: 2.0, dbt: 2.0, snowflake: 1.5, bigquery: 1.5,
+     redshift: 1.5, delta lake: 2.0, lakehouse: 2.0, glue: 1.5,
+     dataflow: 1.5, etl: 1.5, pipeline: 1.0, pipelines: 1.0, batch: 1.0,
+     iceberg: 1.5, trino: 1.5, warehouse: 1.0, ingestion: 1.5,
+     repartitioning: 1.5}
+  data_analyst:
+    {power bi: 2.0, tableau: 2.0, looker: 1.5, excel: 1.0, dashboards: 1.5,
+     dashboard: 1.5, reporting: 1.5, amplitude: 2.0, mixpanel: 2.0,
+     a/b testing: 1.5, ad-hoc sql: 1.5, readout: 1.0, experiments: 1.0}
+  data_scientist:
+    {forecasting: 1.5, regression: 1.0, hypothesis: 1.0, statistics: 1.0,
+     scikit-learn: 1.5, sklearn: 1.5, statsmodels: 1.5, causal: 1.5,
+     clustering: 1.0, analytics: 0.5}
+  devops_sre:
+    {kubernetes: 2.0, terraform: 2.0, prometheus: 2.0, grafana: 1.5,
+     ansible: 2.0, jenkins: 1.5, ci/cd: 1.5, docker: 0.5, helm: 2.0,
+     deploy time: 2.0, developer platform: 2.0, incident: 1.5,
+     on-call: 1.5, observability: 2.0, linux: 1.0, sre: 2.0}
+  qa:
+    {selenium: 2.0, cypress: 2.0, appium: 2.0, test automation: 2.0,
+     test cases: 1.5, postman: 1.0, manual testing: 2.0, api testing: 1.5,
+     regression suite: 2.0, jira: 0.5}
+  engineering_manager:
+    {people management: 2.0, hiring: 1.5, roadmap: 1.5, roadmapping: 1.5,
+     managed: 1.5, direct reports: 2.0, performance reviews: 2.0,
+     team of: 1.5}
+  non_engineering:
+    {autocad: 3.0, solidworks: 3.0, catia: 3.0, ansys: 3.0, ptc creo: 3.0,
+     gd&t: 3.0, cnc: 2.0, recruitment: 2.0, talent acquisition: 2.0,
+     naukri: 2.0, linkedin recruiter: 2.0, onboarding: 1.0,
+     growth hacking: 2.0, public speaking: 1.5, fundraising: 2.0,
+     go-to-market: 2.0, sales: 1.5, video editing: 2.0, photoshop: 2.0,
+     canva: 2.0, content writing: 2.0, tolerance stack: 3.0,
+     manufacturing: 2.0, sheet metal: 3.0, chassis: 2.0}
+
+# Title tokens that force a seniority regardless of derived years.
+seniority_overrides:
+  manager:
+    [engineering manager, head of, director, vp, vice president, cto,
+     senior engineering manager, engineering director]
+  staff_plus:
+    [staff, principal, distinguished, fellow, architect, sde-3, sde 3,
+     sde iii, sde-iii, senior staff]

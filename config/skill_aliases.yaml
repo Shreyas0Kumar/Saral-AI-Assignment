@@ -1,0 +1,143 @@
+# canonical: [variants]
+#
+# Only aliases whose variants actually occur in the 25 profiles, the 4 job
+# specs, or are near-certain LinkedIn spellings are listed. Inventing coverage
+# that cannot be verified against the corpus makes the normaliser look better
+# than it is. Variants are matched against the *normalised* skill string, so
+# case, emoji and whitespace are already handled.
+
+version: "1.0.0"
+
+# Canonical forms follow Appendix A.1, which writes `core_skills` as short
+# lowercase names ("excel", not "microsoft excel"), while keeping concepts in
+# their spelled-out form ("machine learning", not "ml").
+aliases:
+  react: [react.js, reactjs, react js, react 18]
+  react native: [reactnative, react-native]
+  next.js: [nextjs, next js]
+  node.js: [nodejs, node js, node]
+  express.js: [expressjs, express js, express]
+  vue.js: [vuejs, vue js, vue]
+  javascript: [js, ecmascript, es6, vanilla javascript]
+  typescript: [ts]
+  postgresql: [postgres, psql, postgre sql, pgsql]
+  mongodb: [mongo, mongo db]
+  mysql: [my sql]
+  kubernetes: [k8s, k8]
+  docker: [containerisation, containerization]
+  aws: [amazon web services]
+  gcp: [google cloud platform, google cloud]
+  azure: [microsoft azure]
+  ci/cd: [cicd, ci cd, continuous integration, continuous delivery, ci-cd]
+  machine learning: [ml]
+  deep learning: [dl]
+  artificial intelligence: [ai]
+  natural language processing: [nlp]
+  computer vision: [cv]
+  scikit-learn: [sklearn, scikit learn, scikitlearn]
+  pytorch: [torch, py torch]
+  tensorflow: [tensor flow, tf]
+  sentence-transformers: [sentence transformers, sbert]
+  hugging face: [huggingface, hf]
+  spark: [apache spark, pyspark, spark sql]
+  airflow: [apache airflow, apache-airflow]
+  kafka: [apache kafka]
+  excel: [ms excel, microsoft excel, advanced excel]
+  ms word: [microsoft word]
+  ms powerpoint: [microsoft powerpoint, powerpoint, ppt]
+  power bi: [powerbi, microsoft power bi]
+  sql: [structured query language]
+  rest apis: [rest api, restful apis, restful api, rest]
+  system design: [systems design, hld, low level design]
+  a/b testing: [ab testing, a b testing, split testing]
+  llm: [large language models, llms]
+  rag: [retrieval augmented generation]
+  vector databases: [vector database, vector db, vectordb]
+  dynamodb: [amazon dynamodb, dynamo db]
+  aws lambda: [lambda]
+  bigquery: [google bigquery, big query]
+  data visualization: [data visualisation, dataviz]
+  people management: [team management]
+
+# Which role family a *declared* skill points at. Used only to answer one
+# question: is this person claiming skills for a family they have never
+# actually worked in? That is the SDB_10019 signal -- six years of AutoCAD and
+# a skills list saying "Machine Learning".
+#
+# This is intentionally a separate map from lexicon.yaml:context. That one
+# disambiguates an ambiguous *job title* from the work an entry describes; this
+# one reads a *self-declared* skills list. Same vocabulary, opposite level of
+# trust, so conflating them would let a claim act as its own evidence.
+skill_families:
+  ml_engineer:
+    [machine learning, deep learning, pytorch, tensorflow, keras, transformers,
+     hugging face, sentence-transformers, scikit-learn, natural language processing,
+     computer vision, opencv, tensorrt, onnx, quantization, llm, rag, langchain,
+     langgraph, mlflow, mlops, faiss, pinecone, pgvector, vector databases,
+     openai api, prompt engineering, llm evaluation, feature store,
+     triton inference server, artificial intelligence, data science, ray]
+  data_engineer:
+    [spark, airflow, snowflake, dbt, databricks, delta lake, azure data factory,
+     aws glue, bigquery, dataflow, kafka, iceberg, trino, hadoop, big data,
+     data modeling, scala, terraform]
+  data_analyst:
+    [power bi, tableau, looker, amplitude, mixpanel, a/b testing, excel,
+     data visualization, statistics, mis]
+  data_scientist: [pandas, numpy, matplotlib, statistics, forecasting, r]
+  backend:
+    [django, fastapi, flask, spring boot, hibernate, celery, node.js,
+     express.js, microservices, rest apis, postgresql, mysql, mongodb, redis,
+     dynamodb, sqs, api gateway, boto3, step functions, aws lambda, grpc, go,
+     java, php]
+  frontend:
+    [react, angular, vue.js, next.js, redux, tailwind css, webpack, jest,
+     html, css, accessibility, graphql, typescript, javascript]
+  mobile: [android, ios, kotlin, swift, flutter, react native, jetpack compose]
+  devops_sre:
+    [kubernetes, docker, prometheus, grafana, ansible, jenkins, ci/cd, helm,
+     linux, cloudformation, observability]
+  qa: [selenium, cypress, appium, postman, api testing, manual testing, pytest, junit]
+  engineering_manager: [people management, hiring, roadmapping]
+  non_engineering:
+    [autocad, solidworks, catia, ansys, recruitment, talent acquisition,
+     naukri, linkedin recruiter, onboarding, growth hacking, public speaking,
+     product management, blockchain, leadership, communication skills,
+     teamwork, video editing, photoshop, canva, content writing, ms word,
+     ms powerpoint]
+
+# Number of declared-but-unevidenced skills pointing at one family before
+# `zero_role_experience_despite_skill_claim` fires. Two is the point at which a
+# claim stops looking like an incidental tool and starts looking like a stated
+# ambition.
+claimed_family_min_skills: 2
+
+# Skills that map to no engineering concept at all. Counted into
+# `off_domain_skills`, which is what catches a 31-item skill list where a third
+# of the entries are Canva and video editing.
+off_domain:
+  - video editing
+  - photoshop
+  - canva
+  - content writing
+  - communication skills
+  - teamwork
+  - leadership
+  - public speaking
+  - ms word
+  - ms powerpoint
+  - autocad
+  - solidworks
+  - catia
+  - ansys
+  - recruitment
+  - talent acquisition
+  - naukri
+  - linkedin recruiter
+  - onboarding
+  - growth hacking
+  - blockchain
+  - product management
+  - roadmapping
+  - hiring
+  - marketing
+  - sales

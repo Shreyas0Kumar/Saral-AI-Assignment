@@ -1,0 +1,68 @@
+# Fit-score weights. Sums to 100.
+#
+# Set from domain reasoning and FROZEN before the first metric was computed.
+# Leave-one-job-out CV over these weights is run in Phase 5, but only as a
+# sensitivity ablation reported out-of-fold; the hand-set values below remain
+# the headline. Tuning 7 weights on 55 labels and reporting on the same 55 is
+# the measurement mistake the brief warns about. See DECISIONS.md D7.
+
+version: "1.0.0"
+
+components:
+  role_match: 30
+  skill_overlap: 25
+  seniority_fit: 15
+  evidence_of_shipping: 12
+  location_fit: 8
+  switch_intent: 5
+  tenure_stability: 5
+
+skill_overlap:
+  must_have_points: 18
+  good_to_have_points: 7
+  # A must-have satisfied only by a declared skill that the work history never
+  # corroborates counts as a fraction of one that is evidenced. This single
+  # number is the mechanism that separates this system from cosine similarity,
+  # so it is visible in the ablation ladder rather than buried.
+  claimed_only_credit: 0.30
+
+seniority_fit:
+  in_band: 15
+  near_band: 9          # within 1 year of the band
+  near_band_years: 1.0
+  decay_years: 3.0      # linear decay to zero over this many further years
+
+location_fit:
+  exact_city: 8
+  remote_job: 8
+  same_metro: 5
+  different_city: 2
+  # Cities treated as one hiring market for `same_metro`.
+  metros:
+    bengaluru: [bangalore, bengaluru, karnataka]
+    delhi_ncr: [delhi, new delhi, gurugram, gurgaon, noida, ghaziabad, faridabad, haryana]
+    mumbai: [mumbai, navi mumbai, thane, pune]
+    hyderabad: [hyderabad, secunderabad, telangana]
+    chennai: [chennai, tamil nadu]
+
+tenure_stability:
+  stable: 1.0
+  moderate: 0.6
+  hopper: 0.2
+
+evidence_of_shipping:
+  points: 12
+  # Phrases that evidence production ownership at scale in an experience
+  # description. Matched on the normalised description.
+  keywords:
+    [rps, qps, tps, scale, production, prod, owned, own, owns, shipped,
+     latency, p99, p95, p50, peak, users, ndcg, throughput, uptime, sla,
+     migrated, cut, reduced, tb/day, m events, million, launched, rewrote]
+
+penalties:
+  missing_must_have: 8
+  # If role_match scores zero the total is capped here. Not a filter: the
+  # candidate still ranks, still carries reason codes, and is still debuggable.
+  # See DECISIONS.md D8 -- this is the most questionable line in the codebase
+  # and it is deliberately visible.
+  role_mismatch_cap: 35
