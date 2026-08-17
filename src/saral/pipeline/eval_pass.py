@@ -24,6 +24,18 @@ from saral.core.evaluation.metrics import aggregate, evaluate_job, ndcg_at_k
 from saral.core.score.scorer import ScoringFlags
 from saral.pipeline.score_pass import run_scoring
 
+#: Maximum points each component can contribute, from config/weights.yaml.
+#: Used to turn a breakdown into a shortfall, which is what error analysis needs.
+COMPONENT_MAX = {
+    "role_match": 30.0,
+    "skill_overlap": 25.0,
+    "seniority_fit": 15.0,
+    "evidence_of_shipping": 12.0,
+    "location_fit": 8.0,
+    "switch_intent": 5.0,
+    "tenure_stability": 5.0,
+}
+
 ABLATION_RUNGS = [
     (1, "role_family_prefilter_only", "role adjacency alone, nothing else"),
     (2, "plus_must_have_scoring", "+ must-have and good-to-have coverage, claims counted at face value"),
@@ -181,9 +193,25 @@ def worst_misses(
                     "ndcg_loss": round(loss, 4),
                     "fit_score": record.fit_score,
                     "score_breakdown": record.score_breakdown,
-                    "driving_component": min(
-                        record.score_breakdown.items(), key=lambda kv: kv[1]
+                    # The component that cost this candidate the most, which is
+                    # the biggest *shortfall* against its maximum -- not the
+                    # smallest absolute value. switch_intent maxes out at 5, so
+                    # it is always near the bottom of the breakdown and is
+                    # almost never what actually went wrong.
+                    "driving_component": max(
+                        (
+                            (name, COMPONENT_MAX.get(name, 0) - points)
+                            for name, points in record.score_breakdown.items()
+                        ),
+                        key=lambda kv: kv[1],
                     )[0],
+                    "component_shortfalls": {
+                        name: round(COMPONENT_MAX.get(name, 0) - points, 2)
+                        for name, points in sorted(
+                            record.score_breakdown.items(),
+                            key=lambda kv: -(COMPONENT_MAX.get(kv[0], 0) - kv[1]),
+                        )
+                    },
                     "missing_must_haves": record.missing_must_haves,
                     "role_family": signals[cid].role_family.value,
                     "years_relevant": signals[cid].years_relevant,

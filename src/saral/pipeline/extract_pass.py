@@ -42,13 +42,22 @@ def run_extract(
             fallback_total += classifier.fallback_invocations()
             abstain_total += classifier.abstentions
             titles_total += sum(classifier.invocations.values()) + classifier.abstentions
-        stage.records_out = len(records)
-        stage.count("titles_classified", titles_total)
-        stage.count("fallback_invocations", fallback_total)
-        stage.count("lexicon_abstentions", abstain_total)
-        stage.count(
-            "fallback_rate",
-            round(fallback_total / titles_total, 4) if titles_total else 0.0,
+        # Accumulated to match `wall_ms`, which also accumulates. Dividing an
+        # accumulated wall time by a non-accumulated record count is how a
+        # cost-per-million figure silently doubles.
+        stage.records_out += len(records)
+        # Assigned, not accumulated. These describe one pass over the corpus,
+        # and `run_full_evaluation` extracts again inside the same telemetry
+        # object -- accumulating would silently double every reported rate's
+        # numerator and denominator.
+        stage.counters["titles_classified"] = titles_total
+        stage.counters["fallback_invocations"] = fallback_total
+        stage.counters["lexicon_abstentions"] = abstain_total
+        stage.counters["fallback_rate"] = (
+            round(fallback_total / titles_total, 4) if titles_total else 0.0
+        )
+        stage.counters["lexicon_abstention_rate"] = (
+            round(abstain_total / titles_total, 4) if titles_total else 0.0
         )
 
     return records, traces, telemetry

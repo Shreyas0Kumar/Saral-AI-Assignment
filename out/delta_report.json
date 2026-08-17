@@ -99,9 +99,9 @@
     "measured": {
       "records_processed_full": 25,
       "records_processed_incremental": 7,
-      "full_pass_wall_s": 0.081,
-      "incremental_wall_s": 0.0356,
-      "extract_ms_per_record": 3.2404
+      "full_pass_wall_s": 0.0454,
+      "incremental_wall_s": 0.0317,
+      "extract_ms_per_record": 1.8152
     },
     "reduction": {
       "records": "7/25",
@@ -111,16 +111,16 @@
     "projected_at_1m_profiles": {
       "assumed_change_rate": 0.28,
       "assumption_note": "7 of 25 candidates changed materially in this feed. Projecting that rate to 1M is an extrapolation from one 10-record feed and should be replaced with an observed weekly churn rate before it is used for capacity planning.",
-      "full_recompute_usd": 0.0442,
-      "incremental_usd": 0.0124,
-      "saved_usd": 0.0318,
-      "basis": "measured 3.240 ms/record single-threaded, priced at Fargate ap-south-1 $0.04656/vCPU-hr"
+      "full_recompute_usd": 0.0248,
+      "incremental_usd": 0.0069,
+      "saved_usd": 0.0178,
+      "basis": "measured 1.815 ms/record single-threaded, priced at Fargate ap-south-1 $0.04656/vCPU-hr"
     }
   },
   "health": {
     "status": "healthy",
     "signals": 25,
     "signals_version": "1.0.0",
-    "change_events": 38
+    "change_events": 19
   }
 }

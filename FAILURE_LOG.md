@@ -214,3 +214,47 @@ this is reported as zero. What changed as a result:
 
 **Cost.** 50 minutes, and it removed a claim I would otherwise have made in the
 writeup and been unable to defend in review.
+
+---
+
+## FL-007 | 2026-08-17 | phase 8 | telemetry -> WRITEUP
+**Symptom.** Writing INFRA.md, I went to cite the extraction throughput from
+`run_manifest.json` and got 4.13 ms/record. The warm latency benchmark in the
+same file says p50 = 1.0 ms. A 4x gap between two measurements of the same
+operation is not a cold-start story.
+
+**Hypothesis 1.** The manifest figure legitimately includes cold start
+(first-call regex compilation, config parse, lazy imports).
+  Checked by: cold start is real but bounded -- the warm benchmark itself warms
+  up on 5 profiles and 25 records is not enough for a 4x amortisation gap.
+  Result: partially true, insufficient.
+
+**Hypothesis 2.** The denominator is wrong. `cost_per_1m_profiles` divides
+  `stage.wall_ms` by `stage.records_out`. `wall_ms` **accumulates** across every
+  entry into the stage context manager, but `records_out` was **assigned**
+  (`=`), so the last writer won.
+  Checked by: printed the stage dict. `records_in: 50, records_out: 25` -- the
+  pipeline extracts twice (once for the deliverable, once inside
+  `run_full_evaluation`), so the wall time was for 50 records and the count said
+  25.
+  Result: confirmed. Every cost figure in the manifest was **exactly 2x too
+  high**.
+
+**Resolution.** `records_out` now accumulates, matching `wall_ms`. Corrected
+figures across three runs: 2.11-2.37 ms/record, $0.03 per million profiles
+rather than $0.06. Also fixed the sibling bug this uncovered: the *counters*
+(`titles_classified`, `lexicon_abstentions`) had the opposite problem -- they
+accumulated and so double-counted, reporting 22 abstentions out of 140 titles
+when the corpus has 11 out of 70. The rate was right by luck, because numerator
+and denominator doubled together. Counters are now assigned, records are
+accumulated, and each is commented with which it is and why.
+
+**What is worth taking from this.** The bug was only visible because the same
+quantity was measured twice by different code paths and the two disagreed. A
+single measurement of throughput would have been wrong and unfalsifiable, and it
+would have gone into INFRA.md as a headline number with visible working -- the
+working would have been visible and the input wrong. The instrumentation needed
+a second opinion as much as the model did.
+
+**Cost.** 30 minutes. Caught at the last possible moment, by checking a document
+against the data it claimed to summarise rather than trusting my own manifest.

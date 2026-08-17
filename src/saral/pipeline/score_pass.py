@@ -37,7 +37,7 @@ def run_scoring(
             rankings[job.spec.job_id] = rank_candidates(
                 signals, traces, job, cfg, weights, flags
             )
-        stage.records_out = sum(len(r) for r in rankings.values())
+        stage.records_out += sum(len(r) for r in rankings.values())
     return rankings
 
 

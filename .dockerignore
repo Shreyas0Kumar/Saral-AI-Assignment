@@ -1,0 +1,10 @@
+.git
+.pytest_cache
+__pycache__
+*.egg-info
+out/*.npz
+out/saral.db
+docs/
+tests/
+DECISIONS.md
+build_plan.md

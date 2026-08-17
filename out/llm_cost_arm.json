@@ -1,0 +1,29 @@
+{
+  "HuggingFaceTB/SmolLM2-135M-Instruct": {
+    "model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "profiles_run": 25,
+    "threads": 8,
+    "load_s": 4.5,
+    "rss_after_load_mb": 555.5,
+    "peak_rss_mb": 861.3,
+    "wall_s_per_profile": {
+      "mean": 40.43,
+      "p50": 40.78,
+      "max": 51.21
+    },
+    "tokens": {
+      "prompt_mean": 280.2,
+      "completion_mean": 56.4
+    },
+    "output_validity": {
+      "valid_json": 11,
+      "valid_role_family": 10,
+      "of": 25
+    },
+    "role_family_accuracy_vs_hand_labels": {
+      "correct": 1,
+      "of": 25,
+      "accuracy": 0.04
+    }
+  }
+}

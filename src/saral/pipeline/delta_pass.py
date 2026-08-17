@@ -66,7 +66,7 @@ def run_delta(
             record, _ = extract(profile, cfg, classifier, computed_at, base_as_of)
             repo.upsert_signal(record)
         full_pass_s = time.perf_counter() - t0
-        stage.records_out = len(profiles)
+        stage.records_out += len(profiles)
 
     state = DeltaState.from_profiles(profiles, base_observed_at)
     with repo.transaction():
@@ -88,7 +88,7 @@ def run_delta(
             repo.save_field_state(state.field_state)
             repo.record_events(result.events)
         incremental_s = time.perf_counter() - t0
-        stage.records_out = len(result.events)
+        stage.records_out += len(result.events)
         stage.count("candidates_recomputed", len(recomputed))
         stage.count("events_emitted", len(result.events))
 

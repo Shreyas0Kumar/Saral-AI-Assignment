@@ -73,3 +73,51 @@ my decisions after reading the model's output against real profiles. The
 generated code was structurally sound and empirically untested; all five
 FAILURE_LOG entries so far come from running it against the data, not from
 reading it.
+
+---
+
+## AI-005 | 2026-08-17 | Claude Code | offline corpus generation
+**Task.** Generate the synthetic job-title corpus that the distilled classifier
+trains on -- the "use an LLM offline to bootstrap labels / distil into a smaller
+model" path the brief explicitly permits.
+**Output.** 528 titles across the 12 taxonomy values, prompted per family for
+realistic Indian-market variants (SDE-2, MTS, Associate Consultant, Analytics
+Engineer, and the services-company spellings alongside the product-company ones).
+Committed at `config/synthetic_titles.jsonl` with the generating prompt kept in
+`scripts/generate_llm_artifacts.py`, so a reviewer can see what produced it and
+`make all` needs no model.
+**Why this backend.** The original plan called for Ollama, which is not
+installed; `Phi-3.5-mini` turned out to be only partially present in the local
+HuggingFace cache and wanted a 4.9GB download, which breaks the no-network
+constraint (FL-001). Claude Code was already the tool in use and its output is
+committed, so the artifact is reproducible for someone who has neither.
+**The honest limitation.** The corpus inherits an LLM's priors about what job
+titles mean, and it was validated against 42 titles I labelled myself. So the
+held-out set is independent of the *models* but not of *me*. At real scale the
+fix is recruiter-graded titles. This is stated in
+`out/fallback_comparison.json → method.holdout.provenance` rather than left for
+a reader to work out.
+
+---
+
+## AI-006 | 2026-08-17 | Claude Code | where it did NOT help
+**Task.** Everything measured in this submission.
+**Observation worth recording.** The generated code was consistently
+well-structured and consistently untested against reality. All seven
+`FAILURE_LOG.md` entries came from running it, not from reading it:
+
+* the `as_of` assumption collapsed on contact with the data (FL-002),
+* the `skill_noise_ratio` "confirmation" was fabricated (FL-003, AI-002),
+* one stray token in `skills_used` outvoted an exact current-title match (FL-004),
+* a reason code fired on a staff platform engineer and would have destroyed
+  recruiter trust in the whole surface (FL-005),
+* the distilled classifier's 100% held-out accuracy was memorisation, and the
+  semantic fallback I built to fix that got 0 of 10 novel titles right (FL-006),
+* and the throughput figure I was about to publish in INFRA.md was 2x too high
+  because the telemetry divided an accumulated numerator by a non-accumulated
+  denominator (FL-007).
+
+Each of those is the kind of error that survives code review and dies on
+contact with data. The division of labour that worked: the model wrote the
+structure, and every number in this repo was checked against the corpus by hand
+before it was written into a document.
