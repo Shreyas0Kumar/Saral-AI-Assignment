@@ -6,7 +6,7 @@
 PY ?= python
 PIP ?= $(PY) -m pip
 
-.PHONY: help install install-eval all extract score evaluate delta test serve \
+.PHONY: help install install-dev install-eval all extract score evaluate delta test serve \
         docker-build docker-run clean regenerate-llm-artifacts cost-arm
 
 help:
@@ -15,6 +15,10 @@ help:
 
 install:  ## install the served dependencies only (no torch)
 	$(PIP) install -r requirements.txt
+	$(PIP) install -e . --no-deps
+
+install-dev:  ## the above plus pytest and httpx, enough to run `make test` (still no torch)
+	$(PIP) install -r requirements-dev.txt
 	$(PIP) install -e . --no-deps
 
 install-eval:  ## install everything, including torch, for the baseline and offline scripts

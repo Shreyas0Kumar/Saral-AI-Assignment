@@ -1,8 +1,6 @@
 # Evaluation and offline artifact generation only. NOT installed in the served
 # image. This is the ~800MB that stays out of production.
--r requirements.txt
+-r requirements-dev.txt
 sentence-transformers>=2.5
 torch>=2.0
 transformers>=4.40
-pytest>=7.4
-httpx>=0.27

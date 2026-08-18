@@ -10,8 +10,8 @@ Notes on what is deliberately *not* here:
 * No model load at startup. The distilled LR loads lazily on first cache miss,
   which is what makes the latency distribution bimodal and legible rather than
   a flat average hiding its structure. The production answer is a startup
-  warm-up; the tradeoff is written down in DECISIONS.md D18 rather than
-  silently taken.
+  warm-up, which is a deliberate tradeoff rather than an oversight: lazy
+  loading is what makes the fallback's cost visible in p95.
 """
 
 from __future__ import annotations

@@ -20,7 +20,8 @@ def load_distilled_lr():
 
     Loaded lazily on first use rather than at import, which is what makes the
     served latency distribution bimodal -- p50 is the lexicon path, p95 exposes
-    this. See DECISIONS.md D18.
+    this. The production answer is a startup warm-up; loading lazily here keeps
+    that structure visible in the measurement instead of averaging it away.
     """
     if not LR_ARTIFACT.exists():
         return None

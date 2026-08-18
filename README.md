@@ -15,12 +15,15 @@ stated below.
 Requires Python 3.11+. No network, no GPU, no Ollama, no model download.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # served deps + pytest/httpx, still no torch
 pip install -e . --no-deps
 
 make all          # extract -> score -> evaluate -> delta, writes everything in out/
 make test         # 130 tests
 ```
+
+`requirements.txt` alone is the served set — it is what the Docker image
+installs, and it deliberately omits the test runner along with torch.
 
 Nothing above touches the network or loads a model. The two scripts that *do*
 use an LLM (`make regenerate-llm-artifacts` and `make cost-arm`) are deliberately
@@ -104,7 +107,7 @@ $ docker exec <container> python -c "import torch"
 ModuleNotFoundError: No module named 'torch'
 ```
 
-**439 MB**, against roughly 1.2 GB with the deep-learning stack. It runs the
+**440 MB**, against roughly 1.2 GB with the deep-learning stack. It runs the
 whole pipeline at build time, so `/health` returns `healthy` with 25 signals and
 19 change events the moment the container starts, rather than `degraded` until
 someone remembers to run the pipeline.
@@ -149,12 +152,12 @@ Latency, warmed up, 500 iterations:
 
 | batch | p50 | p95 | iterations |
 |---|---|---|---|
-| 1 profile | 0.699 ms | 3.363 ms | 500 |
-| 100 profiles | 108.174 ms | 140.589 ms | 30 |
+| 1 profile | 0.595 ms | 2.859 ms | 500 |
+| 100 profiles | 100.511 ms | 116.864 ms | 30 |
 
 Every figure here is `out/metrics.json → latency_ms.extract`, quoted rather than
 rounded, so the table and the artifact can be diffed. The 1.0 ms per profile at
-the top of this README is the batch-100 p50 amortised (108.174 / 100).
+the top of this README is the batch-100 p50 amortised (100.511 / 100).
 
 Measured on an otherwise idle machine. Under load (a local LLM on the same
 cores) the identical code measures 2.2–5.0 ms, which is why every figure here
@@ -168,15 +171,15 @@ reasoning error:
 
 | arm | s/profile | valid JSON | role_family correct | cost / 1M |
 |---|---|---|---|---|
-| **signals_v1 (shipped)** | **0.0015** | n/a | **25/25** | **$0.02** |
+| **signals_v1 (shipped)** | **0.0013** | n/a | **25/25** | **$0.018** |
 | gemini-3.5-flash-lite (hosted) | 1.25 | 25/25 | 24/25 | ~$36 (per token) |
 | gemma3:1b (local) | 2.68 | 25/25 | 17/25 | $35 (744 CPU-h) |
 | qwen2.5:3b-instruct (local) | 5.03 | 25/25 | 20/25 | $65 (1,397 CPU-h) |
 
 **The accuracy argument turned out weaker than I expected and the cost argument
-stronger.** Gemini gets 24 of 25 — so the case against a per-row LLM is 1,800x
-cost, 800x latency, free-tier rate limits (this run hit HTTP 429 after 14 calls),
-and a third-party dependency on the field that gates search.
+stronger.** Gemini gets 24 of 25 — so the case against a per-row LLM is ~2,000x
+cost, ~960x latency, free-tier rate limits (this run hit HTTP 429 after 14
+calls), and a third-party dependency on the field that gates search.
 
 **The one result worth the whole exercise:** SDB_10019 — the mechanical engineer
 with six years of AutoCAD whose headline says "Transitioning to Data Science",
@@ -226,7 +229,7 @@ rather than a diff with a timestamp exclusion list.
   relabelled to look more reproducible than it is.
 * **Partial signal recomputation.** The dependency map exists and reports which
   signals a change affects, but a dirty candidate has their whole `SignalRecord`
-  recomputed. Extraction is ~2 ms; the saving that matters is candidate-level
+  recomputed. Extraction is ~1.3 ms; the saving that matters is candidate-level
   (7 of 25, not 25 of 25). Claiming an optimisation I did not build would be
   worse than saying this.
 * **Calibrated switch intent.** There is no outcome label anywhere in the
@@ -237,4 +240,7 @@ rather than a diff with a timestamp exclusion list.
 
 1. `WRITEUP.md` -- what was built, what failed, where it fails silently, AI usage.
 2. `FAILURE_LOG.md` -- twelve entries with the hypotheses that were abandoned.
-3. `INFRA.md` -- one page, AWS, with the arithmetic visible.
+3. `INFRA.md` -- Part 5, AWS, with the arithmetic visible.
+
+`WRITEUP.md` and `INFRA.md` both break at a horizontal rule: the brief's answer
+is above it, the supporting evidence below. Read the top halves first.

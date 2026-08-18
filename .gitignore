@@ -30,3 +30,6 @@ bash.exe.stackdump
 # opaque, and regenerable; the measured summaries in out/llm_cost_arm.json are
 # the evidence worth committing.
 out/llm_cache/
+
+# The assignment brief itself, and my own copy of it.
+docs/

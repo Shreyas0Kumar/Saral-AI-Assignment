@@ -11,8 +11,8 @@ signals were affected. The implementation then recomputes the whole
 `SignalRecord` for a dirty candidate, because extraction is sub-millisecond and
 partial recomputation would add dependency-ordered evaluation and stale-subfield
 tracking to save microseconds. The saving that matters is candidate-level --
-recomputing 6 of 25 rather than 25 of 25. Claiming partial recompute I did not
-build would be worse than reporting this plainly. See DECISIONS.md D12.
+recomputing 7 of 25 rather than 25 of 25. Claiming partial recompute I did not
+build would be worse than reporting this plainly.
 """
 
 from __future__ import annotations

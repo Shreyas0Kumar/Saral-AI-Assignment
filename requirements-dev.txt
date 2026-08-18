@@ -1,0 +1,6 @@
+# Running the test suite. Deliberately separate from requirements-eval.txt:
+# the tests need no torch, so asking a reviewer to pull 800MB of CUDA wheels
+# just to run `make test` would be the wrong default.
+-r requirements.txt
+pytest>=7.4
+httpx>=0.27

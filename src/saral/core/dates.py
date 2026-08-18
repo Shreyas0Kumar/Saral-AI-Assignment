@@ -1,8 +1,9 @@
 """Date handling and non-overlapping tenure arithmetic.
 
-No clock is read here. ``as_of`` is always injected -- see ``DECISIONS.md`` D13
-and ``WRITEUP.md`` "Assumptions" for why the corpus snapshot date is derived from
-the data rather than taken from ``datetime.now()``.
+No clock is read here. ``as_of`` is always injected, which is what makes the core
+testable and Part 3 idempotency a plain equality assertion. See ``WRITEUP.md``
+"Assumptions" for why the corpus snapshot date is derived from the data rather
+than taken from ``datetime.now()``.
 """
 
 from __future__ import annotations

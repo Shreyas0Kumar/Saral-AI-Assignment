@@ -4,7 +4,7 @@
 # Leave-one-job-out CV over these weights is run in Phase 5, but only as a
 # sensitivity ablation reported out-of-fold; the hand-set values below remain
 # the headline. Tuning 7 weights on 55 labels and reporting on the same 55 is
-# the measurement mistake the brief warns about. See DECISIONS.md D7.
+# the measurement mistake the brief warns about.
 
 version: "1.0.0"
 
@@ -62,7 +62,10 @@ evidence_of_shipping:
 penalties:
   missing_must_have: 8
   # If role_match scores zero the total is capped here. Not a filter: the
-  # candidate still ranks, still carries reason codes, and is still debuggable.
-  # See DECISIONS.md D8 -- this is the most questionable line in the codebase
-  # and it is deliberately visible.
+  # candidate still ranks, still carries reason codes, and the cap is visible
+  # in `score_breakdown` rather than hidden. This is the most questionable line
+  # in the codebase. 35 sits below any plausible in-family score but above
+  # zero, so ordering within the rejected group still carries information for
+  # anyone debugging a complaint. Defended in WRITEUP.md; a learned model with
+  # enough labels should not need it.
   role_mismatch_cap: 35

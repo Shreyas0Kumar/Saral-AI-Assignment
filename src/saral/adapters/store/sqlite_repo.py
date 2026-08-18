@@ -7,8 +7,8 @@ reconstructed on every run.
 
 Not Postgres, despite INFRA.md proposing Aurora, because a compose file is one
 more thing a reviewer has to run. The repository sits behind this class, so the
-swap is one adapter -- which is an argument, not a proof, and it is described as
-such in DECISIONS.md D14.
+swap is one adapter -- which is an argument, not a proof, and INFRA.md states it
+as one.
 
 `input_hash` is stored on both `raw_profiles` and `signals` so the system can
 distinguish "nothing changed" from "never computed", which Appendix A calls out

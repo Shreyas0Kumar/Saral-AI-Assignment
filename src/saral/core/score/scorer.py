@@ -15,7 +15,9 @@ a candidate. A dropped candidate emits no reason codes, which would make
 capped (default 35). This is the most questionable line in the codebase and it
 is deliberately visible in the breakdown rather than hidden in a filter. The
 alternative -- letting adjacency smoothly carry an HR executive to 55 -- ranks
-worse and explains worse. See DECISIONS.md D8.
+worse and explains worse. The counterargument -- that a cap is a hard filter
+with extra steps and introduces a discontinuity -- is fair on the
+discontinuity, and a learned model with enough labels should not need it.
 """
 
 from __future__ import annotations

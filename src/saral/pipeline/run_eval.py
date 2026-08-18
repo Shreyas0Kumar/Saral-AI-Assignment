@@ -69,7 +69,7 @@ def _latency_block(profiles: list[dict], arm: str) -> dict:
                 "batch_1 is per-record. The distribution is bimodal by design: the "
                 "lexicon path is microseconds, and the distilled-LR fallback loads "
                 "lazily on first miss, so p95 exposes the fallback cost rather than "
-                "hiding it in a flat mean. See DECISIONS.md D18."
+                "hiding it in a flat mean."
             ),
         },
         "machine": machine_info(),

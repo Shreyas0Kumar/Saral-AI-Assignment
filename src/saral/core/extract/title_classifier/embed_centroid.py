@@ -8,8 +8,10 @@ module imports numpy and nothing else, so the purity test passes honestly.
 
 Its advantage over the distilled LR is semantic generalisation to titles unlike
 anything in the synthetic corpus -- real, but unmeasurable at n=25. Its cost is
-an 800MB torch dependency in the served image, which is very measurable. See
-DECISIONS.md D2.
+an 800MB torch dependency in the served image, which is very measurable. It is
+cut on evidence, not on image size: see `out/fallback_comparison.json` and
+WRITEUP.md -- on the only population a fallback ever sees, it answers all five
+and gets all five wrong, because a cosine argmax cannot abstain.
 """
 
 from __future__ import annotations

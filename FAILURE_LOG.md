@@ -208,9 +208,9 @@ this is reported as zero. What changed as a result:
   vote (`SDE II` + `Java, Spring Boot` -> backend), i.e. by the primary path,
   not the fallback. The architecture was already covering the case the fallback
   was hired for.
-* `DECISIONS.md` D2 was rewritten. Its original reasoning ("classification
-  difference was inside noise while the cost difference was measurable") was
-  too generous to my own component.
+* The decision note behind this was rewritten. Its original reasoning
+  ("classification difference was inside noise while the cost difference was
+  measurable") was too generous to my own component.
 
 **Cost.** 50 minutes, and it removed a claim I would otherwise have made in the
 writeup and been unable to defend in review.

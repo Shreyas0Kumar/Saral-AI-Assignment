@@ -20,7 +20,8 @@ duplicate-line and out-of-order traps with the same line of code.
 
 **`observed_at` is per field group, not per record.** A partial record can carry
 one stale field and two fresh ones; record-level rejection would discard the
-fresh two. See DECISIONS.md D11.
+fresh two. Field granularity buys correct *merging*; it does not change
+recompute granularity, which `delta/dependency.py` reports separately.
 """
 
 from __future__ import annotations

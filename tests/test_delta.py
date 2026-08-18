@@ -106,8 +106,8 @@ def test_trap_1b_partial_record_applies_fresh_fields_and_rejects_stale_ones(base
     """The reason `observed_at` is per field group and not per record.
 
     Record-level rejection would discard the two fresh fields along with the
-    stale one. That is the case a naive implementation gets wrong, and it is
-    why DECISIONS.md D11 exists.
+    stale one. That is the case a naive implementation gets wrong, and it is why
+    `field_state` is keyed by (candidate, field group) rather than by candidate.
     """
     apply_delta(
         base_state,
